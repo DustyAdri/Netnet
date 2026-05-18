@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCNA1 – Network Exam // SECURE_TERMINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --bg2: #030a03;
+    --surface: #050f05;
+    --surface2: #0a1a0a;
+    --surface3: #0d200d;
+    --border: #1a3a1a;
+    --border2: #0f2a0f;
+    --neon: #00ff41;
+    --neon2: #00cc33;
+    --neon3: #00ff88;
+    --neon-dim: #007a1e;
+    --neon-glow: rgba(0,255,65,0.15);
+    --neon-glow2: rgba(0,255,65,0.05);
+    --red: #ff3333;
+    --red-dim: #660000;
+    --red-bg: #0d0000;
+    --yellow: #ffcc00;
+    --text: #b3ffcc;
+    --text-dim: #4d8a5c;
+    --text-muted: #2a5a36;
+    --radius: 4px;
+    --scan: rgba(0,255,65,0.03);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      var(--scan) 2px,
+      var(--scan) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRT flicker */
+  @keyframes flicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.96; }
+    94% { opacity: 1; }
+    96% { opacity: 0.94; }
+    97% { opacity: 1; }
+  }
+
+  body {
+    font-family: 'Share Tech Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 100px;
+    animation: flicker 8s infinite;
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.4;
+  }
+
+  #matrix-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+
+  /* ── TOP BANNER ── */
+  .top-banner {
+    position: relative;
+    z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--neon);
+    padding: 30px 24px 24px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0,255,65,0.1), inset 0 0 60px rgba(0,255,65,0.02);
+  }
+
+  .boot-line {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+
+  .top-banner h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    font-weight: 900;
+    color: var(--neon);
+    text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon2);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    animation: glitch 6s infinite;
+  }
+
+  .top-banner p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+  }
+
+  .tag-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    padding: 3px 10px;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--neon-dim);
+    color: var(--neon2);
+    background: var(--neon-glow2);
+  }
+  .tag-red { border-color: #660000; color: #ff6666; background: rgba(255,0,0,0.03); }
+
+  /* ── EXAM SELECTOR ── */
+  .exam-selector {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .selector-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 10px 24px;
+    border: 1px solid var(--neon-dim);
+    background: transparent;
+    color: var(--neon-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .selector-btn:hover {
+    border-color: var(--neon);
+    color: var(--neon);
+    box-shadow: 0 0 10px rgba(0,255,65,0.2);
+  }
+  .selector-btn.active {
+    border-color: var(--neon);
+    color: #000;
+    background: var(--neon);
+    box-shadow: 0 0 15px rgba(0,255,65,0.4);
+    text-shadow: none;
+  }
+
+  @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+  .cursor::after {
+    content: '_';
+    animation: blink 1s infinite;
+    color: var(--neon);
+  }
+
+  /* ── STICKY HEADER ── */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(0,0,0,0.97);
+    border-bottom: 1px solid var(--neon-dim);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 2px 20px rgba(0,255,65,0.08);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 16px; }
+
+  .header-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--neon);
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 8px var(--neon);
+  }
+  .header-title span { color: var(--text-dim); text-shadow: none; font-weight: 400; }
+
+  .btn-restart {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    background: transparent;
+    border: 1px solid var(--neon-dim);
+    color: var(--yellow);
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-restart:hover {
+    background: rgba(255,204,0,0.1);
+    border-color: var(--yellow);
+    box-shadow: 0 0 8px rgba(255,204,0,0.2);
+  }
+
+  .score-board { display: flex; gap: 10px; align-items: center; }
+
+  .score-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    border: 1px solid;
+  }
+  .score-chip.correct {
+    border-color: var(--neon-dim);
+    color: var(--neon);
+    background: var(--neon-glow2);
+    text-shadow: 0 0 6px var(--neon);
+  }
+  .score-chip.wrong {
+    border-color: var(--red-dim);
+    color: var(--red);
+    background: rgba(255,0,0,0.03);
+  }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    position: relative;
+    z-index: 10;
+    padding: 12px 20px 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border2);
+  }
+  .progress-bar-track {
+    height: 4px;
+    background: var(--surface3);
+    overflow: hidden;
+    border: 1px solid var(--border2);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon), 0 0 16px var(--neon2);
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    margin-top: 5px;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-align: right;
+    padding-bottom: 10px;
+  }
+
+  /* ── LAYOUT ── */
+  .layout-container {
+    position: relative;
+    z-index: 10;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--neon-dim);
+    font-size: 1.2rem;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    text-shadow: 0 0 10px rgba(0,255,65,0.2);
+  }
+
+  /* ── TRACKER (STICKY RIGHT BAR) ── */
+  .tracker-wrapper {
+    width: 170px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 80px; 
+    z-index: 90;
+  }
+  .tracker-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 12px;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,255,65,0.05);
+  }
+  .tracker-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: var(--neon-dim);
+    transition: all 0.2s;
+  }
+  .tracker-panel:hover::before {
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon);
+  }
+  .tracker-header {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    color: var(--neon);
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 4px var(--neon);
+  }
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .tracker-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 6px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tracker-item:hover {
+    border-color: var(--neon);
+    color: var(--neon);
+    background: var(--neon-glow2);
+    box-shadow: 0 0 6px rgba(0,255,65,0.2);
+  }
+  .tracker-item.correct {
+    border-color: var(--neon);
+    color: var(--neon);
+    background: rgba(0,255,65,0.1);
+    text-shadow: 0 0 4px var(--neon);
+    box-shadow: inset 0 0 4px rgba(0,255,65,0.2);
+  }
+  .tracker-item.wrong {
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(255,0,0,0.1);
+    text-shadow: 0 0 4px var(--red);
+  }
+
+  @media (max-width: 900px) {
+    .layout-container { flex-direction: column; }
+    .tracker-wrapper { width: 100%; position: static; top: auto; }
+    .tracker-grid { grid-template-columns: repeat(12, 1fr); max-height: 200px; }
+  }
+  @media (max-width: 600px) {
+    .tracker-grid { grid-template-columns: repeat(8, 1fr); }
+  }
+  @media (max-width: 400px) {
+    .tracker-grid { grid-template-columns: repeat(6, 1fr); }
+  }
+
+  /* ── QUESTION CARD ── */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .q-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--neon-dim);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .q-card:hover {
+    border-color: var(--neon-dim);
+    box-shadow: 0 0 16px rgba(0,255,65,0.06), inset 0 0 20px rgba(0,255,65,0.02);
+  }
+  .q-card:hover::before {
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon);
+  }
+
+  .q-header {
+    padding: 16px 18px 12px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border2);
+  }
+  .q-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--neon);
+    background: var(--neon-glow2);
+    border: 1px solid var(--neon-dim);
+    padding: 3px 8px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 6px var(--neon);
+  }
+  .q-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    width: 100%;
+  }
+
+  .q-multi-badge {
+    display: inline-block;
+    margin-top: 7px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--yellow);
+    background: rgba(255,204,0,0.05);
+    border: 1px solid rgba(255,204,0,0.3);
+    padding: 2px 8px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── CHOICES ── */
+  .q-choices {
+    padding: 14px 18px 10px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .choice-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+    width: 100%;
+    letter-spacing: 0.02em;
+    position: relative;
+  }
+  .choice-btn::before {
+    content: '> ';
+    color: var(--neon-dim);
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    transition: color 0.12s;
+  }
+  .choice-btn:hover:not(:disabled) {
+    border-color: var(--neon2);
+    background: var(--neon-glow2);
+    color: var(--neon3);
+    box-shadow: 0 0 12px rgba(0,255,65,0.08);
+  }
+  .choice-btn:hover:not(:disabled)::before { color: var(--neon); }
+
+  .choice-btn.selected {
+    border-color: var(--neon);
+    background: var(--neon-glow);
+    color: var(--neon);
+    text-shadow: 0 0 4px rgba(0,255,65,0.3);
+    box-shadow: 0 0 12px rgba(0,255,65,0.12), inset 0 0 12px rgba(0,255,65,0.05);
+  }
+  .choice-btn.selected::before { color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+
+  .choice-btn.correct-ans {
+    border-color: var(--neon) !important;
+    background: rgba(0,255,65,0.08) !important;
+    color: var(--neon) !important;
+    text-shadow: 0 0 6px rgba(0,255,65,0.4) !important;
+    box-shadow: 0 0 16px rgba(0,255,65,0.15) !important;
+  }
+  .choice-btn.correct-ans::before { color: var(--neon) !important; }
+
+  .choice-btn.wrong-ans {
+    border-color: var(--red) !important;
+    background: var(--red-bg) !important;
+    color: var(--red) !important;
+    box-shadow: 0 0 12px rgba(255,0,0,0.1) !important;
+  }
+  .choice-btn.wrong-ans::before { content: '✗ '; color: var(--red) !important; }
+
+  .choice-btn:disabled { cursor: default; }
+  .choice-indicator { display: none; }
+
+  /* ── EXPLANATION ── */
+  .explanation {
+    margin: 0 18px 14px 20px;
+    padding: 12px 14px;
+    background: rgba(0,20,0,0.8);
+    border: 1px solid var(--neon-dim);
+    border-left: 3px solid var(--neon);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: #66cc77;
+    line-height: 1.7;
+    display: none;
+    letter-spacing: 0.02em;
+    box-shadow: 0 0 16px rgba(0,255,65,0.05);
+  }
+  .explanation.show { display: block; }
+  .explanation strong {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 6px var(--neon);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* ── ACTIONS ── */
+  .q-actions {
+    padding: 0 18px 16px 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    padding: 7px 16px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    border: 1px solid;
+    background: transparent;
+    transition: all 0.12s;
+    text-transform: uppercase;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-check {
+    border-color: var(--neon);
+    color: var(--neon);
+    text-shadow: 0 0 6px var(--neon);
+    box-shadow: 0 0 10px rgba(0,255,65,0.1);
+  }
+  .btn-check:hover:not(:disabled) {
+    background: var(--neon);
+    color: #000;
+    text-shadow: none;
+    box-shadow: 0 0 20px rgba(0,255,65,0.4);
+  }
+  .btn-check:disabled {
+    border-color: var(--border);
+    color: var(--text-muted);
+    text-shadow: none;
+    box-shadow: none;
+    cursor: default;
+  }
+
+  .btn-free {
+    border-color: rgba(255,204,0,0.4);
+    color: var(--yellow);
+  }
+  .btn-free:hover:not(:disabled) {
+    background: rgba(255,204,0,0.08);
+    box-shadow: 0 0 12px rgba(255,204,0,0.15);
+  }
+  .btn-free:disabled { opacity: 0.3; cursor: default; }
+
+  .error-msg {
+    color: var(--red);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    margin-left: auto;
+    text-shadow: 0 0 4px rgba(255,0,0,0.4);
+    display: none;
+  }
+
+  /* ── SUBMIT ── */
+  .submit-area {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 10px 0 30px;
+  }
+  .btn-submit {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    padding: 14px 50px;
+    border: 2px solid var(--neon);
+    background: transparent;
+    color: var(--neon);
+    cursor: pointer;
+    text-shadow: 0 0 10px var(--neon);
+    box-shadow: 0 0 20px rgba(0,255,65,0.2), inset 0 0 20px rgba(0,255,65,0.02);
+    transition: all 0.2s;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,255,65,0.1), transparent);
+    transition: left 0.4s;
+  }
+  .btn-submit:hover::before { left: 100%; }
+  .btn-submit:hover {
+    background: rgba(0,255,65,0.08);
+    box-shadow: 0 0 40px rgba(0,255,65,0.35), inset 0 0 30px rgba(0,255,65,0.05);
+  }
+  .btn-submit:active { transform: scale(0.98); }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+
+  @keyframes termOpen {
+    from { opacity: 0; transform: scaleY(0.1) scaleX(0.8); }
+    to { opacity: 1; transform: scaleY(1) scaleX(1); }
+  }
+
+  .modal {
+    background: var(--bg);
+    border: 1px solid var(--neon);
+    max-width: 460px;
+    width: 92%;
+    padding: 0;
+    box-shadow: 0 0 60px rgba(0,255,65,0.25), inset 0 0 40px rgba(0,255,65,0.02);
+    animation: termOpen 0.25s cubic-bezier(.4,0,.2,1);
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .modal-titlebar {
+    background: var(--neon);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-titlebar span {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: 0.15em;
+  }
+  .modal-body { padding: 30px 28px; text-align: center; }
+
+  .modal-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .modal-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--neon);
+    text-shadow: 0 0 10px var(--neon);
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .modal-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 16px 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .modal-pass { color: var(--neon); text-shadow: 0 0 20px var(--neon), 0 0 40px var(--neon2); }
+  .modal-fail { color: var(--red); text-shadow: 0 0 20px var(--red); }
+  .modal-ratio {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+  .modal-verdict {
+    display: inline-block;
+    padding: 5px 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+  .modal-verdict.pass {
+    border: 1px solid var(--neon);
+    color: var(--neon);
+    text-shadow: 0 0 8px var(--neon);
+    box-shadow: 0 0 16px rgba(0,255,65,0.2);
+  }
+  .modal-verdict.fail {
+    border: 1px solid var(--red);
+    color: var(--red);
+    box-shadow: 0 0 16px rgba(255,0,0,0.15);
+  }
+  .btn-close-modal {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 9px 28px;
+    border: 1px solid var(--neon);
+    background: transparent;
+    color: var(--neon);
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon);
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .btn-close-modal:hover {
+    background: var(--neon);
+    color: #000;
+    text-shadow: none;
+    box-shadow: 0 0 20px rgba(0,255,65,0.4);
+  }
+
+  .restart-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .btn-restart-opt {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--neon-dim);
+    color: var(--neon-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-restart-opt:hover {
+    border-color: var(--neon);
+    color: var(--neon);
+    background: rgba(0,255,65,0.05);
+    box-shadow: 0 0 12px rgba(0,255,65,0.2);
+  }
+  .btn-restart-cancel { border-color: var(--red-dim); color: var(--red); }
+  .btn-restart-cancel:hover { border-color: var(--red); color: var(--red); background: rgba(255,0,0,0.05); box-shadow: 0 0 12px rgba(255,0,0,0.2); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--neon-dim); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+
+  ::selection { background: var(--neon); color: #000; }
+
+  @keyframes glitch {
+    0%,100% { text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon2); transform: none; }
+    92% { text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon2); transform: none; }
+    93% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; transform: translateX(2px); }
+    94% { text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon); transform: none; }
+    96% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; transform: translateX(-1px); }
+    97% { text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon2); transform: none; }
+  }
+
+  .match-img { width: 100%; border-radius: 4px; margin-bottom: 12px; border: 1px solid var(--neon-dim); }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-bg"></canvas>
+
+<div class="top-banner">
+  <div class="boot-line">> INITIALIZING EXAM MODULE...</div>
+  <div class="boot-line">> LOADING QUESTION DATABANKS [OK]</div>
+  <div class="boot-line">> SECURITY PROTOCOLS ACTIVE [OK]</div>
+  <br>
+  <h1 class="cursor">CCNA1 // NETWORK_EXAM</h1>
+  <p>> INTRODUCTION TO NETWORKS v7.0 // SECURITY &amp; TROUBLESHOOTING</p>
+  <div class="tag-row">
+    <span class="tag" id="header-q-count">[ 0 QUESTIONS ]</span>
+    <span class="tag">[ ITN v7.0 ]</span>
+    <span class="tag tag-red">[ PASS THRESHOLD: 60% ]</span>
+  </div>
+
+  <div class="exam-selector">
+    <button class="selector-btn" id="btn-mod16_17" onclick="switchExam('mod16_17')">[ MOD 16-17 ]</button>
+    <button class="selector-btn" id="btn-finals" onclick="switchExam('finals')">[ FINALS_PRACTICE ]</button>
+  </div>
+</div>
+
+<div class="site-header">
+  <div class="header-left">
+    <div class="header-title">CCNA1 <span id="header-subtitle">// MOD 16-17</span></div>
+    <button class="btn-restart" onclick="showRestartModal()">[ RESTART_MODULE ]</button>
+  </div>
+  <div class="score-board">
+    <div class="score-chip correct">[ ✓ <span id="correct-count">0</span> CORRECT ]</div>
+    <div class="score-chip wrong">[ ✗ <span id="wrong-count">0</span> WRONG ]</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <div class="progress-label" id="progress-label">> PROGRESS: 0 / 0 ANSWERED</div>
+</div>
+
+<div class="layout-container">
+  
+  <div class="main" id="quiz-main"></div>
+
+  <div class="tracker-wrapper">
+    <div class="tracker-panel">
+      <div class="tracker-header">// NAV_TRACKER</div>
+      <div class="tracker-grid" id="tracker-grid"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="submit-area" id="submit-area">
+  <button class="btn-submit" onclick="submitQuiz()">[ SUBMIT_EXAM ]</button>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span>// EXAM_RESULT.EXE</span>
+      <span>▬▬▬</span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-icon" id="modal-icon">🖥</div>
+      <div class="modal-title" id="modal-title">PROCESSING...</div>
+      <div class="modal-score" id="modal-score"></div>
+      <div class="modal-ratio" id="modal-ratio"></div>
+      <div class="modal-verdict" id="modal-verdict"></div><br>
+      <button class="btn-close-modal" onclick="closeModal()">[ CLOSE ]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="restart-modal">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <span>// SYSTEM_REBOOT.EXE</span>
+      <span>▬▬▬</span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-icon">⚠️</div>
+      <div class="modal-title">REBOOT PROTOCOL</div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;">Warning: This action will erase your current progress for this module.</div>
+      <div class="restart-options">
+        <button class="btn-restart-opt" onclick="confirmRestart(true)">[ SHUFFLE_QUESTIONS ]</button>
+        <button class="btn-restart-opt" onclick="confirmRestart(false)">[ KEEP_ORIGINAL_ORDER ]</button>
+        <button class="btn-restart-opt btn-restart-cancel" onclick="closeRestartModal()">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MATRIX RAIN ──
+(function(){
+  const canvas = document.getElementById('matrix-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, cols, drops;
+  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF';
+  function init() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cols = Math.floor(W / 16);
+    drops = Array(cols).fill(1);
+  }
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '13px Share Tech Mono';
+    drops.forEach((y, i) => {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(ch, i * 16, y * 16);
+      if (y * 16 > H && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+  init();
+  window.addEventListener('resize', init);
+  setInterval(draw, 50);
+})();
+
+// ── QUIZ DATABANKS ──
+const EXAM_BANKS = {
+  mod16_17: [
+    { n:1, q:"Which component is designed to protect against unauthorized communications to and from a computer?", choices:["security center","port scanner","antimalware","antivirus","firewall"], answer:[4], multi:false, exp:"Topic 16.3.5" },
+    { n:2, q:"Which command will block login attempts on RouterA for a period of 30 seconds if there are 2 failed login attempts within 10 seconds?", choices:["RouterA(config)# login block-for 10 attempts 2 within 30","RouterA(config)# login block-for 30 attempts 2 within 10","RouterA(config)# login block-for 2 attempts 30 within 10","RouterA(config)# login block-for 30 attempts 10 within 2"], answer:[1], multi:false, exp:"Topic 16.4.3" },
+    { n:3, q:"What is the purpose of the network security accounting function?", choices:["to require users to prove who they are","to determine which resources a user can access","to keep track of the actions of a user","to provide challenge and response questions"], answer:[2], multi:false, exp:"Topic 16.3.4" },
+    { n:4, q:"What type of attack may involve the use of tools such as nslookup and fping?", choices:["access attack","reconnaissance attack","denial of service attack","worm attack"], answer:[1], multi:false, exp:"Topic 16.2.2" },
+    { n:5, q:"Match each weakness with an example. (Not all options are used.)\n\nPlace the options in the following order:\n• security policy weakness → The network administrator did not fully consider the implications of unauthorized users accessing the network.\n• configuration weakness → When implementing an access list on a router, a network engineer did not filter a type of malicious traffic.\n• technological weakness → A network engineer is examining the operating system of a network device for vulnerabilities.\n\nWhich statement BEST describes the correct matching?", choices:["security policy weakness = unauthorized users; config weakness = OS exam; tech weakness = access list","security policy weakness = unauthorized users; config weakness = access list; tech weakness = OS exam","security policy weakness = OS exam; config weakness = access list; tech weakness = unauthorized users","security policy weakness = access list; config weakness = OS exam; tech weakness = unauthorized users"], answer:[1], multi:false, exp:"Topic 16.1.2 — An employee who is trying to guess the password of another user exemplifies not a weakness but an attack." },
+    { n:6, q:"Match the type of information security threat to the scenario. (Not all options are used.)\n\nWhich correctly matches all four threats below?\n• information theft → obtaining trade secret documents illegally\n• identity theft → pretending to be someone else by using stolen personal information to apply for a credit card\n• data loss → installing virus code to destroy surveillance recordings for certain days\n• disruption of service → preventing users from accessing a website by sending a large number of link requests in a short period", choices:["information theft=trade secrets; identity theft=credit card fraud; data loss=virus destroys recordings; disruption=link flood","information theft=credit card; identity theft=trade secrets; data loss=link flood; disruption=virus","information theft=trade secrets; identity theft=link flood; data loss=credit card; disruption=virus","information theft=virus; identity theft=credit card; data loss=trade secrets; disruption=link flood"], answer:[0], multi:false, exp:"Topic 16.1.2 — After an intruder gains access to a network, common network threats are: Information theft, Identity theft, Data loss or manipulation, Disruption of service. Cracking the password for a known username is a type of access attack." },
+    { n:7, q:"Which example of malicious code would be classified as a Trojan horse?", choices:["malware that was written to look like a video game","malware that requires manual user intervention to spread between systems","malware that attaches itself to a legitimate program and spreads to other programs when launched","malware that can automatically spread from one system to another by exploiting a vulnerability in the target"], answer:[0], multi:false, exp:"Topic 16.2.1 — A Trojan horse is malicious code that has been written specifically to look like a legitimate program. This is in contrast to a virus, which simply attaches itself to an actual legitimate program. Viruses require manual intervention from a user to spread from one system to another, while a worm is able to spread automatically between systems by exploiting vulnerabilities on those devices." },
+    { n:8, q:"What is the difference between a virus and a worm?", choices:["Viruses self-replicate but worms do not.","Worms self-replicate but viruses do not.","Worms require a host file but viruses do not.","Viruses hide in legitimate programs but worms do not."], answer:[1], multi:false, exp:"Topic 16.2.1 — Worms are able to self-replicate and exploit vulnerabilities on computer networks without user participation." },
+    { n:9, q:"Which attack involves a compromise of data that occurs between two end points?", choices:["denial-of-service","man-in-the-middle attack","extraction of security parameters","username enumeration"], answer:[1], multi:false, exp:"Topic 16.2.2" },
+    { n:10, q:"Which type of attack involves an adversary attempting to gather information about a network to identify vulnerabilities?", choices:["reconnaissance","DoS","dictionary","man-in-the-middle"], answer:[0], multi:false, exp:"Topic 16.2.2 — Reconnaissance is a type of attack where the intruder is looking for wireless network vulnerabilities." },
+    { n:11, q:"Match the description to the type of firewall filtering. (Not all options are used.)\n\nWhich option CORRECTLY matches all types?\n• stateful packet inspection → prevents or allows access based on whether the traffic is in response to requests from internal hosts\n• URL filtering → prevents or allows access based on web addresses or keywords\n• application filtering → prevents or allows access based on the port numbers used in the request\n• packet filtering → prevents or allows access based on the IP or MAC addresses of the source and destination", choices:["SPI=response check; URL=web addresses; app=port numbers; packet=IP/MAC","SPI=port numbers; URL=response check; app=web addresses; packet=IP/MAC","SPI=IP/MAC; URL=port numbers; app=response check; packet=web addresses","SPI=web addresses; URL=IP/MAC; app=response check; packet=port numbers"], answer:[0], multi:false, exp:"Topic 16.3.6" },
+    { n:12, q:"What is the purpose of the network security authentication function?", choices:["to require users to prove who they are","to determine which resources a user can access","to keep track of the actions of a user","to provide challenge and response questions"], answer:[0], multi:false, exp:"Topic 16.3.4 — Authentication, authorization, and accounting are network services collectively known as AAA. Authentication requires users to prove who they are. Authorization determines which resources the user can access. Accounting keeps track of the actions of the user." },
+    { n:13, q:"Which firewall feature is used to ensure that packets coming into a network are legitimate responses to requests initiated from internal hosts?", choices:["stateful packet inspection","URL filtering","application filtering","packet filtering"], answer:[0], multi:false, exp:"Topic 16.3.6 — Stateful packet inspection on a firewall checks that incoming packets are actually legitimate responses to requests originating from hosts inside the network." },
+    { n:14, q:"When applied to a router, which command would help mitigate brute-force password attacks against the router?", choices:["exec-timeout 30","service password-encryption","banner motd $Max failed logins = 5$","login block-for 60 attempts 5 within 60"], answer:[3], multi:false, exp:"Topic 16.4.3" },
+    { n:15, q:"Identify the steps needed to configure a switch for SSH. The answer order does not matter. (Not all options are used.)\n\nWhich set of steps are REQUIRED for SSH configuration?", choices:["Create a local user; Generate RSA keys; Use the login command; Configure a domain name","Create a local user; Generate RSA keys; Configure a domain name; Use the login local command; Use the transport input ssh command","Create a local user; Use the password cisco command; Configure a domain name; Use the transport input ssh command","Generate RSA keys; Use the login local command; Use the password cisco command; Use the transport input ssh command"], answer:[1], multi:false, exp:"Topic 16.4.4 — The login and password cisco commands are used with Telnet switch configuration, not SSH configuration." },
+    { n:16, q:"What feature of SSH makes it more secure than Telnet for a device management connection?", choices:["confidentiality with IPsec","stronger password requirement","random one-time port connection","login information and data encryption"], answer:[3], multi:false, exp:"Topic 16.4.4 — SSH provides security by providing encryption for both authentication (username and password) and the transmitted data." },
+    { n:17, q:"What is the advantage of using SSH over Telnet?", choices:["SSH is easier to use.","SSH operates faster than Telnet.","SSH provides secure communications to access hosts.","SSH supports authentication for a connection request."], answer:[2], multi:false, exp:"Topic 16.4.4 — SSH provides a secure method for remote access to hosts by encrypting network traffic between the SSH client and remote hosts." },
+    { n:18, q:"What is the role of an IPS?", choices:["detecting and blocking of attacks in real time","connecting global threat information to Cisco network security devices","authenticating and validating traffic","filtering of nefarious websites"], answer:[0], multi:false, exp:"Topic 16.3.4 — An intrusion prevention system (IPS) provides real-time detection and blocking of attacks." },
+    { n:19, q:"A user is redesigning a network for a small company and wants to ensure security at a reasonable price. The user deploys a new application-aware firewall with intrusion detection capabilities on the ISP connection. The user installs a second firewall to separate the company network from the public network. Additionally, the user installs an IPS on the internal network of the company. What approach is the user implementing?", choices:["attack based","risk based","structured","layered"], answer:[3], multi:false, exp:"Topic 16.3.1 — Using different defenses at various points of the network creates a layered approach." },
+    { n:20, q:"What is an accurate description of redundancy?", choices:["configuring a router with a complete MAC address database to ensure that all frames can be forwarded to the correct destination","configuring a switch with proper security to ensure that all traffic forwarded through an interface is filtered","designing a network to use multiple virtual devices to ensure that all traffic uses the best path through the internetwork","designing a network to use multiple paths between switches to ensure there is no single point of failure"], answer:[3], multi:false, exp:"Topic 17.1.4 — Redundancy attempts to remove any single point of failure in a network by using multiple physically cabled paths between switches in the network." },
+    { n:21, q:"A network administrator is upgrading a small business network to give high priority to real-time applications traffic. What two types of network services is the network administrator trying to accommodate? (Choose two.)", choices:["voice","video","instant messaging","FTP","SNMP"], answer:[0,1], multi:true, exp:"Topic 17.1.5 — Streaming media, such as video, and voice traffic, are both examples of real-time traffic." },
+    { n:22, q:"What is the purpose of a small company using a protocol analyzer utility to capture network traffic on the network segments where the company is considering a network upgrade?", choices:["to identify the source and destination of local network traffic","to capture the Internet connection bandwidth requirement","to document and analyze network traffic requirements on each network segment","to establish a baseline for security analysis after the network is upgraded"], answer:[2], multi:false, exp:"Topic 17.2.x" },
+    { n:23, q:"Refer to the exhibit. An administrator is testing connectivity to a remote device with the IP address 10.1.1.1. The output shows:\n\nSwitch# ping 10.1.1.1\nType escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 10.1.1.1, timeout is 2 seconds:\nUUUUU\nSuccess rate is 0 percent (0/5)\n\nWhat does this output indicate?", choices:["Connectivity to the remote device was successful.","A router along the path did not have a route to the destination.","A ping packet is being blocked by a security device along the path.","The connection timed out while waiting for a reply from the remote device."], answer:[1], multi:false, exp:'Topic 17.4.1 — The letter "U" indicates that a router along the path did not have a route to the destination and sent an ICMP destination unreachable message back to the source.' },
+    { n:24, q:"Which method is used to send a ping message specifying the source address for the ping?", choices:["Issue the ping command from within interface configuration mode.","Issue the ping command without specifying a destination IP address.","Issue the ping command without extended commands.","Issue the ping command after shutting down un-needed interfaces."], answer:[1], multi:false, exp:"Topic 17.4.2 — By issuing the ping command without a destination IP address in privileged EXEC mode, the Cisco IOS enters extended ping mode." },
+    { n:25, q:"A network engineer is analyzing reports from a recently performed network baseline. Which situation would depict a possible latency issue?", choices:["a change in the bandwidth according to the show interfaces output","a next-hop timeout from a traceroute","an increase in host-to-host ping response times","a change in the amount of RAM according to the show version output"], answer:[2], multi:false, exp:"Topic 17.4.5" },
+    { n:26, q:"Which statement is true about Cisco IOS ping indicators?", choices:["'!' indicates that the ping was unsuccessful and that the device may have issues finding a DNS server.","'U' may indicate that a router along the path did not contain a route to the destination address and that the ping was unsuccessful.","'.' indicates that the ping was successful but the response time was longer than normal.","A combination of '.' and '!' indicates that a router along the path did not have a route to the destination address and responded with an ICMP unreachable message."], answer:[1], multi:false, exp:'Topic 17.4.1 — The "U" indicates that a router along the path may not have had a route to the destination address, and that it responded with an ICMP unreachable message.' },
+    { n:27, q:"A user reports a lack of network connectivity. The technician takes control of the user machine and attempts to ping other computers on the network and these pings fail. The technician pings the default gateway and that also fails. What can be determined for sure by the results of these tests?", choices:["The NIC in the PC is bad.","The TCP/IP protocol is not enabled.","The router that is attached to the same network as the workstation is down.","Nothing can be determined for sure at this point."], answer:[3], multi:false, exp:"Topic 17.4.1 — In networks today, a failed ping could mean that the other devices on the network are blocking pings." },
+    { n:28, q:"A network technician issues the C:> tracert -6 www.cisco.com command on a Windows PC. What is the purpose of the -6 command option?", choices:["It forces the trace to use IPv6.","It limits the trace to only 6 hops.","It sets a 6 milliseconds timeout for each replay.","It sends 6 probes within each TTL time period."], answer:[0], multi:false, exp:"Topic 17.4.3" },
+    { n:29, q:"Why would a network administrator use the tracert utility?", choices:["to determine the active TCP connections on a PC","to check information about a DNS name in the DNS server","to identify where a packet was lost or delayed on a network","to display the IP address, default gateway, and DNS server address for a PC"], answer:[2], multi:false, exp:"Topic 17.4.3 — The tracert utility is used to identify the path a packet takes from source to destination." },
+    { n:30, q:"A ping fails when performed from router R1 to directly connected router R2. The network administrator then proceeds to issue the show cdp neighbors command. Why would the network administrator issue this command if the ping failed between the two routers?", choices:["The network administrator suspects a virus because the ping command did not work.","The network administrator wants to verify Layer 2 connectivity.","The network administrator wants to verify the IP address configured on router R2.","The network administrator wants to determine if connectivity can be established from a non-directly connected network."], answer:[1], multi:false, exp:"Topic 17.5.6 — The show cdp neighbors command can be used to prove that Layer 1 and Layer 2 connectivity exists between two Cisco devices." },
+    { n:31, q:"A network engineer is troubleshooting connectivity issues among interconnected Cisco routers and switches. Which command should the engineer use to find the IP address information, host name, and IOS version of neighboring network devices?", choices:["show version","show ip route","show interfaces","show cdp neighbors detail"], answer:[3], multi:false, exp:"Topic 17.5.5" },
+    { n:32, q:"What information about a Cisco router can be verified using the show version command?", choices:["the routing protocol version that is enabled","the value of the configuration register","the operational status of serial interfaces","the administrative distance used to reach networks"], answer:[1], multi:false, exp:"Topic 17.5.5 — The value of the configuration register can be verified with the show version command." },
+    { n:33, q:"Which command should be used on a Cisco router or switch to allow log messages to be displayed on remotely connected sessions using Telnet or SSH?", choices:["debug all","logging synchronous","show running-config","terminal monitor"], answer:[3], multi:false, exp:"Topic 17.6.4 — The terminal monitor command is required when a user is accessing a network device remotely." },
+    { n:34, q:"Which command can an administrator issue on a Cisco router to send debug messages to the vty lines?", choices:["terminal monitor","logging console","logging buffered","logging synchronous"], answer:[0], multi:false, exp:"Topic 17.6.4 — Sending debug messages to the terminal lines requires the terminal monitor command." },
+    { n:35, q:"By following a structured troubleshooting approach, a network administrator identified a network issue after a conversation with the user. What is the next step that the administrator should take?", choices:["Verify full system functionality.","Test the theory to determine cause.","Establish a theory of probable causes.","Establish a plan of action to resolve the issue."], answer:[2], multi:false, exp:"Topic 17.6.1 — Steps: 1. Identify the problem. 2. Establish a theory of probable causes. 3. Test the theory to determine cause. 4. Establish a plan of action. 5. Verify full system functionality. 6. Document findings." },
+    { n:36, q:"Users are complaining that they are unable to browse certain websites on the Internet. An administrator can successfully ping a web server via its IP address, but cannot browse to the domain name of the website. Which troubleshooting tool would be most useful in determining where the problem is?", choices:["netstat","tracert","nslookup","ipconfig"], answer:[2], multi:false, exp:"Topic 17.7.5 — The nslookup command can help verify the DNS that is used and if the domain name to IP address resolution works." },
+    { n:37, q:"An employee complains that a Windows PC cannot connect to the Internet. A network technician issues the ipconfig command on the PC and is shown an IP address of 169.254.10.3. Which two conclusions can be drawn? (Choose two.)", choices:["The PC cannot contact a DHCP server.","The DNS server address is misconfigured.","The default gateway address is not configured.","The PC is configured to obtain an IP address automatically.","The enterprise network is misconfigured for dynamic routing."], answer:[0,3], multi:true, exp:"Topic 17.7.x — A 169.254.x.x address is an APIPA address, which means the PC was configured to get an address via DHCP but could not contact the DHCP server." },
+    { n:38, q:"Refer to the exhibit. Host H3 is having trouble communicating with host H1. The network administrator suspects a problem exists with the H3 workstation and wants to prove that there is no problem with the R2 configuration. What tool could the network administrator use on router R2 to prove that communication exists to host H1 from the interface on R2, which is the interface that H3 uses when communicating with remote networks?", choices:["traceroute","show cdp neighbors","Telnet","an extended ping"], answer:[3], multi:false, exp:"Topic 17.4.2 — An extended ping allows an administrator to select specific ping features, including specifying a source address." },
+    { n:39, q:"Refer to the exhibit. Baseline documentation for a small company had ping round trip time statistics of 36/97/132 between hosts H1 and H3. Today the network administrator checked connectivity by pinging between hosts H1 and H3 that resulted in a round trip time of 1458/2390/6066. What does this indicate to the network administrator?", choices:["Connectivity between H1 and H3 is fine.","H3 is not connected properly to the network.","Something is causing interference between H1 and R1.","Performance between the networks is within expected parameters.","Something is causing a time delay between the networks."], answer:[4], multi:false, exp:"Topic 17.4.5 — Ping round trip time statistics are shown in milliseconds. The larger the number the more delay." },
+    { n:40, q:"Which network service automatically assigns IP addresses to devices on the network?", choices:["DHCP","Telnet","DNS","traceroute"], answer:[0], multi:false, exp:"Topic 17.2.2 — Dynamic Host Configuration Protocol (DHCP) can be used to allow end devices to automatically configure IP information." },
+    { n:41, q:"Which command can an administrator execute to determine what interface a router will use to reach remote networks?", choices:["show arp","show interfaces","show ip route","show protocols"], answer:[2], multi:false, exp:"Topic 17.5.5 — The show ip route command is used to display the IP routing table of the router." },
+    { n:42, q:"On which two interfaces or ports can security be improved by configuring executive timeouts? (Choose two.)", choices:["Fast Ethernet interfaces","console ports","serial interfaces","vty ports","loopback interfaces"], answer:[1,3], multi:true, exp:"Topic 16.4.x — Executive timeouts can be configured on console ports and vty ports to improve security by automatically disconnecting idle sessions." },
+    { n:43, q:"When configuring SSH on a router to implement secure network management, a network engineer has issued the login local and transport input ssh line vty commands. What three additional configuration actions have to be performed to complete the SSH configuration? (Choose three.)", choices:["Set the user privilege levels.","Generate the asymmetric RSA keys.","Configure the correct IP domain name.","Configure role-based CLI access.","Create a valid local username and password database.","Manually enable SSH after the RSA keys are generated."], answer:[1,2,4], multi:true, exp:"Topic 16.4.4 — SSH is automatically enabled after the RSA keys are generated. Setting user privilege levels and configuring role-based CLI access are good security practices but are not a requirement of implementing SSH." },
+    { n:44, q:"What is considered the most effective way to mitigate a worm attack?", choices:["Change system passwords every 30 days.","Ensure that all systems have the most current virus definitions.","Ensure that AAA is configured in the network.","Download security updates from the operating system vendor and patch all vulnerable systems."], answer:[3], multi:false, exp:"Topic 16.3.3 — Because worms take advantage of vulnerabilities in the system itself, the most effective way to mitigate worm attacks is to download security updates and patch all vulnerable systems." },
+    { n:45, q:"Which statement describes the ping and tracert commands?", choices:["Tracert shows each hop, while ping shows a destination reply only.","Tracert uses IP addresses; ping does not.","Both ping and tracert can show results in a graphical display.","Ping shows whether the transmission is successful; tracert does not."], answer:[0], multi:false, exp:"Topic 17.4.1" },
+    { n:46, q:"A technician is to document the current configurations of all network devices in a college, including those in off-site buildings. Which protocol would be best to use to securely access the network devices?", choices:["FTP","HTTP","SSH","Telnet"], answer:[2], multi:false, exp:"Topic 16.4.4 — Telnet sends passwords and other information in clear text, while SSH encrypts its data. FTP and HTTP do not provide remote device access for configuration purposes." },
+    { n:47, q:"Which command has to be configured on the router to complete the SSH configuration?", choices:["service password-encryption","transport input ssh","enable secret class","ip domain-name cisco.com"], answer:[1], multi:false, exp:"Topic 16.4.4" },
+    { n:48, q:'An administrator decides to use "WhatAreyouwaiting4" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is strong because it uses a passphrase.","It is weak because it is often the default password on new devices.","It is weak since it uses easily found personal information.","It is weak since it is a word that is easily found in the dictionary."], answer:[0], multi:false, exp:"Topic 16.4.2" },
+    { n:49, q:'An administrator decides to use "pR3s!d7n&0" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is strong because it uses a minimum of 10 numbers, letters and special characters.","It is weak because it is often the default password on new devices.","It is weak since it uses easily found personal information.","It is weak since it is a word that is easily found in the dictionary."], answer:[0], multi:false, exp:"Topic 16.4.2" },
+    { n:50, q:'An administrator decides to use "5$7*4#033!" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is strong because it contains 10 numbers and special characters.","It is weak because it is often the default password on new devices.","It is weak since it uses easily found personal information.","It is strong because it uses a minimum of 10 numbers, letters and special characters."], answer:[0], multi:false, exp:"Topic 16.4.2" },
+    { n:51, q:'An administrator decides to use "pR3s!d7n&0" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is strong because it uses a minimum of 10 numbers, letters and special characters.","It is weak since it is a word that is easily found in the dictionary.","It is strong because it uses a passphrase.","It is strong because it contains 10 numbers and special characters."], answer:[0], multi:false, exp:"Topic 16.4.2" },
+    { n:52, q:'An administrator decides to use "12345678!" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is weak because it uses a series of numbers or letters.","It is strong because it uses a passphrase.","It is weak since it is a word that is easily found in the dictionary.","It is strong because it uses a minimum of 10 numbers, letters and special characters."], answer:[0], multi:false, exp:"Topic 16.4.1" },
+    { n:53, q:'An administrator decides to use "admin" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is weak because it is often the default password on new devices.","It is strong because it uses a passphrase.","It is strong because it uses a minimum of 10 numbers, letters and special characters.","It is strong because it contains 10 numbers and special characters."], answer:[0], multi:false, exp:"Topic 16.4.1" },
+    { n:54, q:'An administrator decides to use "Feb121978" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is weak because it uses easily found personal information.","It is strong because it uses a passphrase.","It is weak since it is a word that is easily found in the dictionary.","It is strong because it uses a minimum of 10 numbers, letters and special characters."], answer:[0], multi:false, exp:"Topic 16.4.2" },
+    { n:55, q:'An administrator decides to use "password" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is weak because it is a commonly used password.","It is weak since it is a word that is easily found in the dictionary.","It is strong because it uses a passphrase.","It is strong because it uses a minimum of 10 numbers, letters and special characters."], answer:[0], multi:false, exp:"Topic 16.4.1" },
+    { n:56, q:'An administrator decides to use "RobErT" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is weak since it uses easily found personal information.","It is strong because it uses a passphrase.","It is strong because it uses a minimum of 10 numbers, letters and special characters.","It is strong because it contains 10 numbers and special characters."], answer:[0], multi:false, exp:"Topic 16.4.2" },
+    { n:57, q:'An administrator decides to use "Elizabeth" as the password on a newly installed router. Which statement applies to the password choice?', choices:["It is weak because it uses easily found personal information.","It is strong because it uses a passphrase.","It is weak since it is a word that is easily found in the dictionary.","It is strong because it uses a minimum of 10 numbers, letters and special characters."], answer:[0], multi:false, exp:"Topic 16.4.2 — Rules for strong passwords: minimum of 8 characters (preferably 10), use complex combinations, avoid repetition and common dictionary words, avoid personal information." },
+    { n:58, q:"A network technician is troubleshooting an issue and needs to verify the IP addresses of all interfaces on a router. What is the best command to use to accomplish the task?", choices:["show ip interface brief","nslookup","ipconfig getifaddr en0","show ip route"], answer:[0], multi:false, exp:"Topic 17.5.7" },
+    { n:59, q:"Students who are connected to the same switch are having slower than normal response times. The administrator suspects a duplex setting issue. What is the best command to use to accomplish the task?", choices:["show interfaces","ipconfig getifaddr en0","copy running-config startup-config","show ip nat translations"], answer:[0], multi:false, exp:"Topic 17.7.1" },
+    { n:60, q:"A user wants to know the IP address of the PC. What is the best command to use to accomplish the task?", choices:["ipconfig","copy running-config startup-config","show interfaces","show ip nat translations"], answer:[0], multi:false, exp:"Topic 17.5.1" },
+    { n:61, q:"A student wants to save a router configuration to NVRAM. What is the best command to use to accomplish the task?", choices:["copy running-config startup-config","show interfaces","show ip nat translations","show ip route"], answer:[0], multi:false, exp:"Topic 17.5.1" },
+    { n:62, q:"A support technician needs to know the IP address of the wireless interface on a MAC. What is the best command to use to accomplish the task?", choices:["ipconfig getifaddr en0","copy running-config startup-config","show interfaces","show ip nat translations"], answer:[0], multi:false, exp:"" },
+    { n:63, q:"A network technician is troubleshooting an issue and needs to verify all of the IPv6 interface addresses on a router. What is the best command to use to accomplish the task?", choices:["show ipv6 interface","show interfaces","show ip nat translations","show ip route"], answer:[0], multi:false, exp:"Topic 17.5.5" },
+    { n:64, q:"A teacher is having difficulties connecting his PC to the classroom network. He needs to verify that a default gateway is configured correctly. What is the best command to use to accomplish the task?", choices:["ipconfig","copy running-config startup-config","show interfaces","show ip nat translations"], answer:[0], multi:false, exp:"Topic 17.5.1" },
+    { n:65, q:"Only employees connected to IPv6 interfaces are having difficulty connecting to remote networks. The analyst wants to verify that IPv6 routing has been enabled. What is the best command to use to accomplish the task?", choices:["show running-config","show interfaces","copy running-config startup-config","show ip nat translations"], answer:[0], multi:false, exp:"Topic 17.7.2" },
+    { n:66, q:"An administrator is troubleshooting connectivity issues and needs to determine the IP address of a website. What is the best command to use to accomplish the task?", choices:["nslookup","show ipv6 route","show ipv6 interface","copy startup-config running-config"], answer:[0], multi:false, exp:"Topic 17.7.5" },
+    { n:67, q:"What is a characteristic of UDP?", choices:["UDP datagrams take the same path and arrive in the correct order at the destination.","Applications that use UDP are always considered unreliable.","UDP reassembles the received datagrams in the order they were received.","UDP only passes data to the network when the destination is ready to receive the data."], answer:[2], multi:false, exp:"Topic 17.8 — UDP has no way to reorder the datagrams into their transmission order, so UDP simply reassembles the data in the order it was received and forwards it to the application." }
+  ],
+  finals: [
+    { n:1, q:"Which two traffic types use the Real-Time Transport Protocol (RTP)? (Choose two.)", choices:["video","web","file transfer","voice","peer to peer"], answer:[0,3], multi:true, exp:"Topic 14.3.4 — Within the framework of network applications, particularly those utilizing the User Datagram Protocol (UDP) for transport, voice and video traffic are the primary types that leverage RTP." },
+    { n:2, q:"Which wireless technology has low-power and data rate requirements making it popular in home automation applications?", choices:["ZigBee","LoRaWAN","5G","Wi-Fi"], answer:[0], multi:false, exp:"Topic 4.6.2 — ZigBee is an IEEE 802.15.4 wireless standard designed for creating personal-area networks. Low energy, power, and data rate requirements make Zigbee a popular protocol for connecting home automation devices." },
+    { n:3, q:"Which layer of the TCP/IP model provides a route to forward messages through an internetwork?", choices:["application","network access","internet","transport"], answer:[2], multi:false, exp:"Topic 3.5.3 — The OSI model network layer corresponds directly to the internet layer of the TCP/IP model and is used to describe protocols that address and route messages through an internetwork." },
+    { n:4, q:"Which type of server relies on record types such as A, NS, AAAA, and MX in order to provide services?", choices:["DNS","email","file","web"], answer:[0], multi:false, exp:"Topic 15.4.2 — A DNS server stores records that are used to resolve IP addresses to host names. Some DNS record types include: A, NS, AAAA, MX." },
+    { n:5, q:"What are proprietary protocols?", choices:["protocols developed by private organizations to operate on any vendor hardware","protocols that can be freely used by any organization or vendor","protocols developed by organizations who have control over their definition and operation","a collection of protocols known as the TCP/IP protocol suite"], answer:[2], multi:false, exp:"Topic 3.3.4 — Proprietary protocols have their definition and operation controlled by one company or vendor." },
+    { n:6, q:"What service is provided by DNS?", choices:["Resolves domain names, such as cisco.com, into IP addresses.","A basic set of rules for exchanging text, graphic images, sound, video, and other multimedia files on the web.","Allows for data transfers between a client and a file server.","Uses encryption to secure the exchange of text, graphic images, sound, and video on the web."], answer:[0], multi:false, exp:"Topic 15.4.1 — The Domain Name System (DNS) is a foundational application layer protocol designed to automate the translation of human-readable domain names into the numeric IP addresses required for network communication." },
+    { n:7, q:"A client packet is received by a server. The packet has a destination port number of 110. What service is the client requesting?", choices:["DNS","DHCP","SMTP","POP3"], answer:[3], multi:false, exp:"Topic 14.4.3 — According to the standard port assignments defined by IANA, port 110 is reserved as a well-known port for the Post Office Protocol version 3 (POP3)." },
+    { n:8, q:"What command can be used on a Windows PC to see the IP configuration of that computer?", choices:["show ip interface brief","ping","show interfaces","ipconfig"], answer:[3], multi:false, exp:"Topic 17.5.1 — The ipconfig command is the primary utility used on a Windows-based computer to display its current IP configuration." },
+    { n:9, q:"A wired laser printer is attached to a home computer. That printer has been shared so that other computers on the home network can also use the printer. What networking model is in use?", choices:["client-based","master-slave","point-to-point","peer-to-peer (P2P)"], answer:[3], multi:false, exp:"Topic 1.2.2 — Peer-to-peer (P2P) networks have two or more network devices that can share resources such as printers or files without having a dedicated server." },
+    { n:10, q:"What characteristic describes a virus?", choices:["a network device that filters access and traffic coming into a network","the use of stolen credentials to access private data","an attack that slows or crashes a device or network service","malicious software or code running on an end device"], answer:[3], multi:false, exp:"Topic 16.2.1 — A virus is a specific type of malware defined as malicious software or code running on an end device, such as a computer, laptop, or mobile phone." },
+    { n:11, q:"Three bank employees are using the corporate network. The first employee uses a web browser to view a company web page in order to read some announcements. The second employee accesses the corporate database to perform some financial transactions. The third employee participates in an important live audio conference with other corporate managers in branch offices. If QoS is implemented on this network, what will be the priorities from highest to lowest of the different data types?", choices:["financial transactions, web page, audio conference","audio conference, financial transactions, web page","financial transactions, audio conference, web page","audio conference, web page, financial transactions"], answer:[1], multi:false, exp:"Topic 1.6.4 — QoS mechanisms enable the establishment of queue management strategies that enforce priorities. Thus, this queuing enables voice data to have priority over transaction data, which has priority over web data." },
+    { n:12, q:"Match the description to the IPv6 addressing component. (Not all options are used.)\n\n• This part of the address is used by an organization to identify subnets.\n• This network portion of the address is assigned by the provider.\n• This part of the address is the equivalent to the host portion of an IPv4 address.", choices:["organization to identify subnets -> subnet ID; assigned by the provider -> global routing prefix; equivalent to host portion -> interface ID","organization to identify subnets -> global routing prefix; assigned by the provider -> subnet ID; equivalent to host portion -> interface ID","organization to identify subnets -> subnet mask; assigned by the provider -> global routing prefix; equivalent to host portion -> interface ID","organization to identify subnets -> interface ID; assigned by the provider -> subnet ID; equivalent to host portion -> global routing prefix"], answer:[0], multi:false, exp:"Topic 12.3.6" },
+    { n:13, q:"Refer to the exhibit. If Host1 were to transfer a file to the server, what layers of the TCP/IP model would be used?", choices:["only application and Internet layers","only Internet and network access layers","only application, Internet, and network access layers","application, transport, Internet, and network access layers","only application, transport, network, data link, and physical layers","application, session, transport, network, data link, and physical layers"], answer:[3], multi:false, exp:"Topic 3.5.3 — The TCP/IP model contains the application, transport, internet, and network access layers. A file transfer uses the FTP application layer protocol. The data would move from the application layer through all of the layers of the model and across the network to the file server." },
+    { n:14, q:"Match the characteristic to the forwarding method. (Not all options are used.)\n\nCut-through:\nStore-and-forward:", choices:["Cut-through = low latency, may forward runt frames, begins forwarding when dest received; Store-and-forward = always stores entire frame, checks CRC, checks frame length.","Cut-through = checks CRC, low latency; Store-and-forward = may forward runt frames, begins forwarding when dest received.","Cut-through = always stores entire frame, low latency; Store-and-forward = checks the frame length, may forward runt frames.","Cut-through = checks the frame length, begins forwarding when dest received; Store-and-forward = low latency, always stores entire frame."], answer:[0], multi:false, exp:"Topic 7.4.1 — A store-and-forward switch always stores the entire frame before forwarding, and checks its CRC and frame length. A cut-through switch can forward frames before receiving the destination address field, thus presenting less latency." },
+    { n:15, q:"Refer to the exhibit. The IP address of which device interface should be used as the default gateway setting of host H1?", choices:["R1: S0/0/0","R2: S0/0/1","R1: G0/0","R2: S0/0/0"], answer:[2], multi:false, exp:"Topic 10.3.1 — The default gateway for host H1 is the router interface that is attached to the LAN that H1 is a member of. In this case, that is the G0/0 interface of R1." },
+    { n:16, q:"What service is provided by Internet Messenger?", choices:["An application that allows real-time chatting among remote users.","Allows remote access to network devices and servers.","Resolves domain names, such as cisco.com, into IP addresses.","Uses encryption to provide secure remote access to network devices and servers."], answer:[0], multi:false, exp:"Topic 1.2.1 — Internet Messenger, widely recognized as instant messaging, is a service that facilitates real-time communication between remote users across a network infrastructure." },
+    { n:17, q:"Refer to the exhibit. Match the network with the correct IP address and prefix that will satisfy the usable host addressing requirements for each network.", choices:["Network A=192.168.0.128/25, Network B=192.168.0.0/26, Network C=192.168.0.96/27, Network D=192.168.0.80/30","Network A=192.168.0.0/26, Network B=192.168.0.128/25, Network C=192.168.0.80/30, Network D=192.168.0.96/27","Network A=192.168.0.96/27, Network B=192.168.0.80/30, Network C=192.168.0.0/26, Network D=192.168.0.128/25","Network A=192.168.0.80/30, Network B=192.168.0.96/27, Network C=192.168.0.128/25, Network D=192.168.0.0/26"], answer:[0], multi:false, exp:"Topic 11.7.2 — Network A needs to use 192.168.0.128/25 (128 hosts). Network B needs 192.168.0.0/26 (64 hosts). Network C needs 192.168.0.96/27 (32 hosts). Network D needs 192.168.0.80/30 (4 hosts)." },
+    { n:18, q:"Refer to the exhibit. Which protocol was responsible for building the table that is shown?", choices:["DHCP","ARP","DNS","ICMP"], answer:[1], multi:false, exp:"Topic 9.2.7 — The table that is shown corresponds to the output of the arp -a command, a command that is used on a Windows PC to display the ARP table." },
+    { n:19, q:"A network administrator notices that some newly installed Ethernet cabling is carrying corrupt and distorted data signals. The new cabling was installed in the ceiling close to fluorescent lights and electrical equipment. Which two factors may interfere with the copper cabling and result in signal distortion and data corruption? (Choose two.)", choices:["crosstalk","extended length of cabling","RFI","EMI","signal attenuation"], answer:[2,3], multi:true, exp:"Topic 4.3.1 — Copper cabling transmits data using electrical pulses, which are highly susceptible to distortion from external electromagnetic signals like electromagnetic interference (EMI) and radio frequency interference (RFI)." },
+    { n:20, q:"A host is trying to send a packet to a device on a remote LAN segment, but there are currently no mappings in its ARP cache. How will the device obtain a destination MAC address?", choices:["It will send the frame and use its own MAC address as the destination.","It will send an ARP request for the MAC address of the destination device.","It will send the frame with a broadcast MAC address.","It will send a request to the DNS server for the destination MAC address.","It will send an ARP request for the MAC address of the default gateway."], answer:[4], multi:false, exp:"Topic 9.2.5 — When a source host identifies that a destination IP address resides on a remote network segment, it must forward the packet to its default gateway. The host initiates an ARP request specifically for the default gateway’s MAC address." },
+    { n:21, q:"A client packet is received by a server. The packet has a destination port number of 53. What service is the client requesting?", choices:["DNS","NetBIOS (NetBT)","POP3","IMAP"], answer:[0], multi:false, exp:"Topic 14.4.3 — According to the standard assignments defined by IANA, port 53 is categorized as a well-known port reserved specifically for the Domain Name System (DNS)." },
+    { n:22, q:"A network administrator is adding a new LAN to a branch office. The new LAN must support 25 connected devices. What is the smallest network mask that the network administrator can use for the new network?", choices:["255.255.255.128","255.255.255.192","255.255.255.224","255.255.255.240"], answer:[2], multi:false, exp:"Topic 11.7.2 — To support a LAN with 25 connected devices, a network administrator must select a subnet mask that provides a sufficient number of usable host addresses while minimizing the waste of address space. A subnet mask of 255.255.255.224 (which corresponds to a /27 prefix) leaves 5 bits for the host portion, allowing for 30 usable host addresses." },
+    { n:23, q:"What characteristic describes a Trojan horse?", choices:["malicious software or code running on an end device","an attack that slows or crashes a device or network service","the use of stolen credentials to access private data","a network device that filters access and traffic coming into a network"], answer:[0], multi:false, exp:"Topic 16.2.1 — A Trojan horse is a specialized form of malware characterized by malicious software or code running on an end device that intentionally disguises itself as a legitimate program." },
+    { n:24, q:"What service is provided by HTTPS?", choices:["Uses encryption to provide secure remote access to network devices and servers.","Resolves domain names, such as cisco.com, into IP addresses.","Uses encryption to secure the exchange of text, graphic images, sound, and video on the web.","Allows remote access to network devices and servers."], answer:[2], multi:false, exp:"Topic 15.3.2" },
+    { n:25, q:"A technician with a PC is using multiple applications while connected to the Internet. How is the PC able to keep track of the data flow between multiple application sessions and have each application receive the correct packet flows?", choices:["The data flow is being tracked based on the destination MAC address of the technician PC.","The data flow is being tracked based on the source port number that is used by each application.","The data flow is being tracked based on the source IP address that is used by the PC of the technician.","The data flow is being tracked based on the destination IP address that is used by the PC of the technician."], answer:[1], multi:false, exp:"Topic 14.4.1 — The source port number of an application is randomly generated and used to individually keep track of each session connecting out to the Internet." },
+    { n:26, q:"A network administrator is adding a new LAN to a branch office. The new LAN must support 61 connected devices. What is the smallest network mask that the network administrator can use for the new network?", choices:["255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128"], answer:[2], multi:false, exp:"Topic 11.7.2 — To support a LAN with 61 connected devices, a subnet mask of 255.255.255.192 (which corresponds to a /26 prefix) leaves 6 bits for the host portion, providing 62 usable host addresses." },
+    { n:27, q:"Refer to the exhibit. Match the network with the correct IP address and prefix that will satisfy the usable host addressing requirements for each network. (Not all options are used.)", choices:["Network A=192.168.0.0 /25, Network B=192.168.0.128 /26, Network C=192.168.0.192 /27, Network D=192.168.0.224 /30","Network A=192.168.0.128 /26, Network B=192.168.0.0 /25, Network C=192.168.0.224 /30, Network D=192.168.0.192 /27","Network A=192.168.0.0 /24, Network B=192.168.0.128 /26, Network C=192.168.0.192 /27, Network D=192.168.0.228 /32","Network A=192.168.0.128 /26, Network B=192.168.0.0 /25, Network C=192.168.0.192 /27, Network D=192.168.0.224 /30"], answer:[0], multi:false, exp:"Topic 11.7.2 — Network A needs to use 192.168.0.0 /25 which yields 128 host addresses. Network B needs to use 192.168.0.128 /26 which yields 64 host addresses. Network C needs to use 192.168.0.192 /27 which yields 32 host addresses. Network D needs to use 192.168.0.224 /30 which yields 4 host addresses." },
+    { n:28, q:"What characteristic describes a DoS attack?", choices:["the use of stolen credentials to access private data","a network device that filters access and traffic coming into a network","software that is installed on a user device and collects information about the user","an attack that slows or crashes a device or network service"], answer:[3], multi:false, exp:"Topic 16.2.4 — A Denial of Service (DoS) attack is a malicious attempt to prevent legitimate users from accessing network services or resources... designed to slow or crash the applications and processes running on a network device." },
+    { n:29, q:"Match the application protocols to the correct transport protocols.", choices:["TCP: FTP, HTTP, SMTP; UDP: DHCP, TFTP","TCP: DHCP, TFTP, SMTP; UDP: FTP, HTTP","TCP: FTP, HTTP, DHCP; UDP: SMTP, TFTP","TCP: HTTP, TFTP; UDP: FTP, SMTP, DHCP"], answer:[0], multi:false, exp:"Topic 14.4.3" },
+    { n:30, q:"What service is provided by SMTP?", choices:["Allows clients to send email to a mail server and the servers to send email to other servers.","Allows remote access to network devices and servers.","Uses encryption to provide secure remote access to network devices and servers.","An application that allows real-time chatting among remote users."], answer:[0], multi:false, exp:"Topic 15.3.4 — The Simple Mail Transfer Protocol (SMTP) is a foundational application layer protocol designed to facilitate the reliable transmission of electronic mail across a network." },
+    { n:31, q:"Which scenario describes a function provided by the transport layer?", choices:["A student is using a classroom VoIP phone to call home. The unique identifier burned into the phone is a transport layer address used to contact another network device on the same network.","A student is playing a short web-based movie with sound. The movie and sound are encoded within the transport layer header.","A student has two web browser windows open in order to access two web sites. The transport layer ensures the correct web page is delivered to the correct browser window.","A corporate worker is accessing a web server located on a corporate network. The transport layer formats the screen so the web page appears properly no matter what device is being used to view the web site."], answer:[2], multi:false, exp:"Topic 14.1.2 — The source and destination port numbers are used to identify the correct application and window within that application." },
+    { n:32, q:"Refer to the exhibit. Host B on subnet Teachers transmits a packet to host D on subnet Students. Which Layer 2 and Layer 3 addresses are contained in the PDUs that are transmitted from host B to the router?", choices:["Layer 2 destination address = 00-00-0c-94-36-ab<br>Layer 2 source address = 00-00-0c-94-36-bb<br>Layer 3 destination address = 172.16.20.200<br>Layer 3 source address = 172.16.10.200", "Layer 2 destination address = 00-00-0c-94-36-dd<br>Layer 2 source address = 00-00-0c-94-36-bb<br>Layer 3 destination address = 172.16.20.200<br>Layer 3 source address = 172.16.10.200", "Layer 2 destination address = 00-00-0c-94-36-cd<br>Layer 2 source address = 00-00-0c-94-36-bb<br>Layer 3 destination address = 172.16.20.99<br>Layer 3 source address = 172.16.10.200", "Layer 2 destination address = 00-00-0c-94-36-ab<br>Layer 2 source address = 00-00-0c-94-36-bb<br>Layer 3 destination address = 172.16.20.200<br>Layer 3 source address = 172.16.100.200"], answer:[0], multi:false, exp:"Topic 9.1.2" },
+    { n:33, q:"What does the term \"attenuation\" mean in data communication?", choices:["strengthening of a signal by a networking device","leakage of signals from one cable pair to another","time for a signal to reach its destination","loss of signal strength as distance increases"], answer:[3], multi:false, exp:"Topic 4.3.1 — Data is transmitted on copper cables as electrical pulses. However, the farther the signal travels, the more it deteriorates. This is referred to as signal attenuation." },
+    { n:34, q:"Refer to the exhibit. An administrator is trying to configure the switch but receives the error message that is displayed in the exhibit. What is the problem?", choices:["The entire command, configure terminal, must be used.","The administrator is already in global configuration mode.","The administrator must first enter privileged EXEC mode before issuing the command.","The administrator must connect via the console port to access global configuration mode."], answer:[2], multi:false, exp:"Topic 2.2.4 — In order to enter global configuration mode, the command configure terminal, or a shortened version such as config t, must be entered from privileged EXEC mode. In this scenario the administrator is in user EXEC mode, as indicated by the > symbol." },
+    { n:35, q:"Which two protocols operate at the top layer of the TCP/IP protocol suite? (Choose two.)", choices:["TCP","IP","UDP","POP","DNS","Ethernet"], answer:[3,4], multi:true, exp:"Topic 3.3.4 — The top layer of the TCP/IP protocol suite is the application layer... both DNS (Domain Name System) and POP (Post Office Protocol) function at this highest level." },
+    { n:36, q:"A company has a file server that shares a folder named Public. The network security policy specifies that the Public folder is assigned Read-Only rights to anyone who can log into the server while the Edit rights are assigned only to the network admin group. Which component is addressed in the AAA network service framework?", choices:["automation","accounting","authentication","authorization"], answer:[3], multi:false, exp:"Topic 16.3.4 — After a user is successfully authenticated (logged into the server), the authorization is the process of determining what network resources the user can access and what operations (such as read or edit) the user can perform." },
+    { n:37, q:"What three requirements are defined by the protocols used in network communcations to allow message transmission across a network? (Choose three.)", choices:["message size","message encoding","connector specifications","media selection","delivery options","end-device installation"], answer:[0,1,4], multi:true, exp:"Topic 3.1.5 — Network communication protocols establish specific rules and standards... including message encoding, message size, and delivery options." },
+    { n:38, q:"What are two characteristics of IP? (Choose two.)", choices:["does not require a dedicated end-to-end connection","operates independently of the network media","retransmits packets if errors occur","re-assembles out of order packets into the correct order at the receiver end","guarantees delivery of packets"], answer:[0,1], multi:true, exp:"Topic 8.1.3 — The Internet Protocol (IP) is a connectionless, best effort protocol. This means that IP requires no end-to-end connection nor does it guarantee delivery. IP is also media independent." },
+    { n:39, q:"An employee of a large corporation remotely logs into the company using the appropriate username and password. The employee is attending an important video conference with a customer concerning a large sale. It is important for the video quality to be excellent during the meeting. The employee is unaware that after a successful login, the connection to the company ISP failed. The secondary connection, however, activated within seconds. The disruption was not noticed by the employee or other employees. What three network characteristics are described in this scenario? (Choose three.)", choices:["security","quality of service","scalability","powerline networking","integrity","fault tolerance"], answer:[0,1,5], multi:true, exp:"Topic 1.6.1 — Usernames and passwords relate to network security. Good quality video... relates to quality of service (QoS). The fact that a connection to an ISP failed and was then restored... relates to fault tolerance." },
+    { n:40, q:"What are two common causes of signal degradation when using UTP cabling? (Choose two.)", choices:["improper termination","low-quality shielding in cable","installing cables in conduit","low-quality cable or connectors","loss of light over long distances"], answer:[0,3], multi:true, exp:"Topic 4.4.2 — When terminated improperly, each cable is a potential source of physical layer performance degradation. Low-quality cable or connectors can also cause signal degradation." },
+    { n:41, q:"Which subnet would include the address 192.168.1.96 as a usable host address?", choices:["192.168.1.64/26","192.168.1.32/27","192.168.1.32/28","192.168.1.64/29"], answer:[0], multi:false, exp:"Topic 11.5.2 — For the subnet of 192.168.1.64/26, there are 6 bits for host addresses, yielding 64 possible addresses. The range is 192.168.1.65 to 192.168.1.126. The other subnets do not contain the address 192.168.1.96 as a valid host address." },
+    { n:42, q:"Refer to the exhibit. On the basis of the output, which two statements about network connectivity are correct? (Choose two.)", choices:["This host does not have a default gateway configured.","There are 4 hops between this device and the device at 192.168.100.1.","There is connectivity between this device and the device at 192.168.100.1.","The connectivity between these two hosts allows for videoconferencing calls.","The average transmission time between the two hosts is 2 milliseconds."], answer:[1,2], multi:true, exp:"Topic 17.4.3 — The output displays a successful Layer 3 connection... It can be determined that 4 hops exist between them..." },
+    { n:43, q:"Which two statements describe how to assess traffic flow patterns and network traffic types using a protocol analyzer? (Choose two.)", choices:["Capture traffic on the weekends when most employees are off work.","Capture traffic during peak utilization times to get a good representation of the different traffic types.","Only capture traffic in the areas of the network that receive most of the traffic such as the data center.","Perform the capture on different network segments.","Only capture WAN traffic because traffic to the web is responsible for the largest amount of traffic on a network."], answer:[1,3], multi:true, exp:"Topic 17.3.2 — Traffic flow patterns should be gathered during peak utilization times... The capture should also be performed on different network segments because some traffic will be local to a particular segment." },
+    { n:44, q:"What is the consequence of configuring a router with the ipv6 unicast-routing global configuration command?", choices:["All router interfaces will be automatically activated.","The IPv6 enabled router interfaces begin sending ICMPv6 Router Advertisement messages.","Each router interface will generate an IPv6 link-local address.","It statically creates a global unicast address on this router."], answer:[1], multi:false, exp:"Topic 12.5.1 — The ipv6 unicast-routing global configuration command is a critical step in IPv6 implementation... its IPv6-enabled interfaces begin transmitting ICMPv6 Router Advertisement (RA) messages periodically..." },
+    { n:45, q:"Which three layers of the OSI model map to the application layer of the TCP/IP model? (Choose three.)", choices:["application","network","data link","session","presentation","transport"], answer:[0,3,4], multi:true, exp:"Topic 15.1.1 — The top three layers of the OSI model: application, presentation, and session map to the application layer of the TCP/IP model." },
+    { n:46, q:"Refer to the exhibit. If PC1 is sending a packet to PC2 and routing has been configured between the two routers, what will R1 do with the Ethernet frame header attached by PC1?<br><br><img src=\"image_37eb4b.png\" class=\"match-img\">", choices:["nothing, because the router has a route to the destination network","open the header and use it to determine whether the data is to be sent out S0/0/0","open the header and replace the destination MAC address with a new one","remove the Ethernet header and configure a new Layer 2 header before sending it out S0/0/0"], answer:[3], multi:false, exp:"Topic 6.1.3 — When PC1 forms the various headers attached to the data, one of those headers is the Layer 2 header. When R1 gets that information, the router removes the Layer 2 header and creates a new one for the type of network the data will be placed onto (the serial link)." },
+    { n:47, q:"What will happen if the default gateway address is incorrectly configured on a host?", choices:["The host cannot communicate with other hosts in the local network.","The host cannot communicate with hosts in other networks.","A ping from the host to 127.0.0.1 would not be successful.","The host will have to use ARP to determine the correct address of the default gateway.","The switch will not forward packets initiated by the host."], answer:[1], multi:false, exp:"Topic 10.3.1 — The default gateway is used to route packets destined for remote networks. If incorrectly configured, the host cannot communicate outside its local network." },
+    { n:48, q:"What are two features of ARP? (Choose two.)", choices:["When a host is encapsulating a packet into a frame, it refers to the MAC address table to determine the mapping of IP addresses to MAC addresses.","An ARP request is sent to all devices on the Ethernet LAN and contains the IP address of the destination host and its multicast MAC address.","If a host is ready to send a packet to a local destination device and it has the IP address but not the MAC address of the destination, it generates an ARP broadcast.","If no device responds to the ARP request, then the originating node will broadcast the data packet to all devices on the network segment.","If a device receiving an ARP request has the destination IPv4 address, it responds with an ARP reply."], answer:[2,4], multi:true, exp:"Topic 9.2.2 — When a node needs the destination MAC address, it checks the ARP table. If there is no match, it generates an ARP broadcast. If a device has the destination IPv4 address, it responds with an ARP reply." },
+    { n:49, q:"A network administrator is adding a new LAN to a branch office. The new LAN must support 90 connected devices. What is the smallest network mask that the network administrator can use for the new network?", choices:["255.255.255.128","255.255.255.240","255.255.255.248","255.255.255.224"], answer:[0], multi:false, exp:"Topic 11.7.2 — To support a LAN with 90 connected devices, a subnet mask of 255.255.255.128 (/25) provides 126 usable host addresses. This is the most efficient choice because the next tighter mask (/26) only provides 62 usable addresses, which is insufficient." },
+    { n:50, q:"What are two ICMPv6 messages that are not present in ICMP for IPv4? (Choose two.)", choices:["Neighbor Solicitation","Destination Unreachable","Host Confirmation","Time Exceeded","Router Advertisement","Route Redirection"], answer:[0,4], multi:true, exp:"Topic 13.1.5 — ICMPv6 includes new messages as part of the Neighbor Discovery Protocol (NDP), specifically Neighbor Solicitation (NS) and Router Advertisement (RA), which are not present in ICMP for IPv4." },
+    { n:51, q:"A client packet is received by a server. The packet has a destination port number of 80. What service is the client requesting?", choices:["DHCP","SMTP","DNS","HTTP"], answer:[3], multi:false, exp:"Topic 14.4.3 — According to well-known port assignments, port 80 is reserved for Hypertext Transfer Protocol (HTTP) web services." },
+    { n:52, q:"What is an advantage for small organizations of adopting IMAP instead of POP?", choices:["POP only allows the client to store messages in a centralized way, while IMAP allows distributed storage.","Messages are kept in the mail servers until they are manually deleted from the email client.","When the user connects to a POP server, copies of the messages are kept in the mail server for a short time, but IMAP keeps them for a long time.","IMAP sends and retrieves email, but POP only retrieves email."], answer:[1], multi:false, exp:"Topic 15.3.4 — The advantage of using IMAP instead of POP is that IMAP stores the email messages on the server until the user manually deletes them, rather than downloading and removing them from the server." },
+    { n:53, q:"A technician can ping the IP address of the web server of a remote company but cannot successfully ping the URL address of the same web server. Which software utility can the technician use to diagnose the problem?", choices:["tracert","ipconfig","netstat","nslookup"], answer:[3], multi:false, exp:"Topic 15.4.4 — nslookup is a tool used to query the DNS system to find IP addresses for domain names, which helps diagnose name resolution issues." },
+    { n:54, q:"Which two functions are performed at the LLC sublayer of the OSI Data Link Layer to facilitate Ethernet communication? (Choose two.)", choices:["implements CSMA/CD over legacy shared half-duplex media","enables IPv4 and IPv6 to utilize the same physical medium","integrates Layer 2 flows between 10 Gigabit Ethernet over fiber and 1 Gigabit Ethernet over copper","implements a process to delimit fields within an Ethernet 2 frame","places information in the Ethernet frame that identifies which network layer protocol is being encapsulated by the frame"], answer:[1,4], multi:true, exp:"Topic 6.1.2 — The Logical Link Control (LLC) sublayer places information in the frame that identifies which network layer protocol is being used for the frame. This allows multiple Layer 3 protocols, such as IPv4 and IPv6, to utilize the same network interface and media." },
+    { n:55, q:"The global configuration command ip default-gateway 172.16.100.1 is applied to a switch. What is the effect of this command?", choices:["The switch can communicate with other hosts on the 172.16.100.0 network.","The switch can be remotely managed from a host on another network.","The switch is limited to sending and receiving frames to and from the gateway 172.16.100.1.","The switch will have a management interface with the address 172.16.100.1."], answer:[1], multi:false, exp:"Topic 10.3.2 — A default gateway address is configured on a switch to allow it to communicate beyond its local network, primarily so it can be remotely managed from a host on another network." },
+    { n:56, q:"What happens when the transport input ssh command is entered on the switch vty lines?", choices:["The SSH client on the switch is enabled.","The switch requires a username/password combination for remote access.","Communication between the switch and remote users is encrypted.","The switch requires remote connections via a proprietary client software."], answer:[2], multi:false, exp:"Topic 16.4.4 — The transport input ssh command ensures that remote connections to the switch vty lines will use SSH, which encrypts all inbound controlled telnet/remote connections." },
+    { n:57, q:"Match the type of threat with the cause. Which sequence correctly defines these threats: electrical, hardware, environmental, maintenance?", choices:["electrical = voltage spikes; hardware = physical damage; environmental = temp extremes; maintenance = poor handling","electrical = physical damage; hardware = voltage spikes; environmental = temp extremes; maintenance = poor handling","electrical = voltage spikes; hardware = poor handling; environmental = temp extremes; maintenance = physical damage","electrical = temp extremes; hardware = physical damage; environmental = voltage spikes; maintenance = poor handling"], answer:[0], multi:false, exp:"Topic 16.1.3 — Electrical threats include voltage spikes and brownouts. Hardware threats involve physical damage to components. Environmental threats relate to temperature and humidity extremes. Maintenance threats involve poor handling of components or poor cabling." },
+    { n:58, q:"A disgruntled employee is using some free wireless networking tools to determine information about the enterprise wireless networks. This person is planning on using this information to hack the wireless network. What type of attack is this?", choices:["DoS","access","reconnaissance","Trojan horse"], answer:[2], multi:false, exp:"Topic 16.2.2 — A reconnaissance attack is the unauthorized discovery and documentation of various computing networks, network systems, resources, applications, services, or vulnerabilities." },
+    { n:59, q:"What service is provided by HTTP?", choices:["Uses encryption to secure the exchange of text, graphic images, sound, and video on the web.","Allows for data transfers between a client and a file server.","An application that allows real-time chatting among remote users.","A basic set of rules for exchanging text, graphic images, sound, video, and other multimedia files on the web."], answer:[3], multi:false, exp:"Topic 15.3.1 — The Hypertext Transfer Protocol (HTTP) is an application layer protocol that defines a specific set of rules for how web browsers (clients) and web servers interact to exchange information." },
+    { n:60, q:"A client packet is received by a server. The packet has a destination port number of 67. What service is the client requesting?", choices:["FTP","DHCP","Telnet","SSH"], answer:[1], multi:false, exp:"Topic 14.4.3 — According to IANA assignments for well-known ports, port 67 is reserved for the Dynamic Host Configuration Protocol (DHCP) server." },
+    { n:61, q:"What are two problems that can be caused by a large number of ARP request and reply messages? (Choose two.)", choices:["Switches become overloaded because they concentrate all the traffic from the attached subnets.","The ARP request is sent as a broadcast, and will flood the entire subnet.","The network may become overloaded because ARP reply messages have a very large payload due to the 48-bit MAC address and 32-bit IP address that they contain.","A large number of ARP request and reply messages may slow down the switching process, leading the switch to make many changes in its MAC table.","All ARP request messages must be processed by all nodes on the local network."], answer:[1,4], multi:true, exp:"Topic 9.2.8 — ARP requests are sent as broadcasts, meaning they will flood the entire subnet and all nodes will receive them and must process them via software, interrupting the CPU." },
+    { n:62, q:"A group of Windows PCs in a new subnet has been added to an Ethernet network. When testing the connectivity, a technician finds that these PCs can access local network resources but not the Internet resources. To troubleshoot the problem, the technician wants to initially confirm the IP address and DNS configurations on the PCs, and also verify connectivity to the local router. Which three Windows CLI commands and utilities will provide the necessary information? (Choose three.)", choices:["netsh interface ipv6 show neighbor","arp -a","tracert","ping","ipconfig","nslookup","telnet"], answer:[3,4,5], multi:true, exp:"Topic 17.5.1 — The ipconfig and nslookup commands provide initial IP address and DNS configuration info. The ping utility verifies connectivity to the default gateway (local router)." },
+    { n:63, q:"During the process of forwarding traffic, what will the router do immediately after matching the destination IP address to a network on a directly connected routing table entry?", choices:["analyze the destination IP address","switch the packet to the directly connected interface","look up the next-hop address for the packet","discard the traffic after consulting the route table"], answer:[1], multi:false, exp:"Topic 8.5.1 — After matching a destination IP to a directly connected network route, the router will switch the packet directly out of that specific interface." },
+    { n:64, q:"What characteristic describes antispyware?", choices:["applications that protect end devices from becoming infected with malicious software","a network device that filters access and traffic coming into a network","software on a router that filters traffic based on IP addresses or applications","a tunneling protocol that provides remote users with secure access into the network of an organization"], answer:[0], multi:false, exp:"Topic 1.8.2 — Antispyware refers to specialized applications designed to protect end devices—such as PCs, laptops, and smartphones—from being compromised by malicious software." },
+    { n:65, q:"A network administrator needs to keep the user ID, password, and session contents private when establishing remote CLI connectivity with a switch to manage it. Which access method should be chosen?", choices:["Telnet","AUX","SSH","Console"], answer:[2], multi:false, exp:"Topic 2.1.4 — SSH (Secure Shell) is the recommended method for establishing a remote CLI connection because it utilizes encryption to ensure that user IDs, passwords, and all session contents remain private." },
+    { n:66, q:"What are the two most effective ways to defend against malware? (Choose two.)", choices:["Implement a VPN.","Implement network firewalls.","Implement RAID.","Implement strong passwords.","Update the operating system and other application software.","Install and update antivirus software."], answer:[4,5], multi:true, exp:"Topic 16.3.3 — The most effective defenses against malware are to continually update the operating system and other application software with security patches, and to install/update antivirus software." },
+    { n:67, q:"Which type of security threat would be responsible if a spreadsheet add-on disables the local software firewall?", choices:["brute-force attack","Trojan horse","DoS","buffer overflow"], answer:[1], multi:false, exp:"Topic 16.2.1 — A Trojan horse disguises itself as legitimate software (like a spreadsheet add-on) and performs hidden illicit actions, such as disabling local security." },
+    { n:68, q:"Which frame field is created by a source node and used by a destination node to ensure that a transmitted data signal has not been altered by interference, distortion, or signal loss?", choices:["User Datagram Protocol field","transport layer error check field","flow control field","frame check sequence field","error correction process field"], answer:[3], multi:false, exp:"Topic 6.3.2 — The frame check sequence (FCS) field is a critical part of the data link layer frame trailer used for error detection using a cyclic redundancy check (CRC)." },
+    { n:69, q:"A network administrator is adding a new LAN to a branch office. The new LAN must support 4 connected devices. What is the smallest network mask that the network administrator can use for the new network?", choices:["255.255.255.248","255.255.255.0","255.255.255.128","255.255.255.192"], answer:[0], multi:false, exp:"Topic 11.7.2 — A subnet mask of 255.255.255.248 (/29) leaves 3 bits for the host portion, providing 6 usable host addresses. This is the smallest network mask capable of supporting 4 devices." },
+    { n:70, q:"What service is provided by POP3?", choices:["Retrieves email from the server by downloading the email to the local mail application of the client.","An application that allows real-time chatting among remote users.","Allows remote access to network devices and servers.","Uses encryption to provide secure remote access to network devices and servers."], answer:[0], multi:false, exp:"Topic 15.3.4 — POP3 specifically handles retrieving email from the server by downloading the email to the local mail application." },
+    { n:71, q:"What two security solutions are most likely to be used only in a corporate environment? (Choose two.)", choices:["antispyware","virtual private networks","intrusion prevention systems","strong passwords","antivirus software"], answer:[1,2], multi:true, exp:"Topic 1.8.2 — While basic security is implemented in homes, corporate networks have advanced requirements. Intrusion prevention systems (IPS) and virtual private networks (VPNs) are typically corporate-level solutions." },
+    { n:72, q:"What characteristic describes antivirus software?", choices:["applications that protect end devices from becoming infected with malicious software","a network device that filters access and traffic coming into a network","a tunneling protocol that provides remote users with secure access into the network of an organization","software on a router that filters traffic based on IP addresses or applications"], answer:[0], multi:false, exp:"Topic 1.8.2 — Antivirus and antispyware are applications used to protect end devices (such as PCs, laptops, and smartphones) from being compromised or infected with malicious software." },
+    { n:73, q:"What mechanism is used by a router to prevent a received IPv4 packet from traveling endlessly on a network?", choices:["It checks the value of the TTL field and if it is 0, it discards the packet and sends a Destination Unreachable message to the source host.","It checks the value of the TTL field and if it is 100, it discards the packet and sends a Destination Unreachable message to the source host.","It decrements the value of the TTL field by 1 and if the result is 0, it discards the packet and sends a Time Exceeded message to the source host.","It increments the value of the TTL field by 1 and if the result is 100, it discards the packet and sends a Parameter Problem message to the source host."], answer:[2], multi:false, exp:"Topic 8.2.2 — Routers decrement the Time to Live (TTL) field by 1. If it hits 0, the router discards the packet and sends an ICMP Time Exceeded message back to the source, preventing endless routing loops." },
+    {
+      n: 75,
+      q: "A client packet is received by a server. The packet has a destination port number of 69. What service is the client requesting?",
+      choices: ["DNS", "DHCP", "SMTP", "TFTP"],
+      answer: [3],
+      multi: false,
+      exp: "Topic 14.4.3<br>The transport layer uses port numbers to identify and direct data to specific applications or services on a host. According to the standard assignments for well-known ports, port 69 is reserved for the Trivial File Transfer Protocol (TFTP). TFTP is a simple, connectionless protocol that utilizes UDP for best-effort, unacknowledged file delivery, requiring less overhead than FTP."
+    },
+    {
+      n: 76,
+      q: "An administrator defined a local user account with a secret password on router R1 for use with SSH. Which three additional steps are required to configure R1 to accept only encrypted SSH connections? (Choose three.)",
+      choices: ["Configure DNS on the router.", "Generate two-way pre-shared keys.", "Configure the IP domain name on the router.", "Generate the SSH keys.", "Enable inbound vty SSH sessions.", "Enable inbound vty Telnet sessions."],
+      answer: [2, 3, 4],
+      multi: true,
+      exp: "Topic 16.4.4<br>To successfully transition a router from insecure Telnet to encrypted SSH, specific configuration steps must be followed. The administrator must configure the IP domain name, generate the SSH keys (typically RSA keys), and update the VTY lines to enable inbound SSH sessions via the transport input ssh command. This last step is crucial because it ensures the router only accepts encrypted connections."
+    },
+    {
+      n: 77,
+      q: "Which two functions are performed at the MAC sublayer of the OSI Data Link Layer to facilitate Ethernet communication? (Choose two.)",
+      choices: ["handles communication between upper layer networking software and Ethernet NIC hardware", "implements trailer with frame check sequence for error detection", "places information in the Ethernet frame that identifies which network layer protocol is being encapsulated by the frame", "implements a process to delimit fields within an Ethernet 2 frame", "adds Ethernet control information to network protocol data"],
+      answer: [1, 3],
+      multi: true,
+      exp: "Topic 6.1.2<br>The OSI data link layer is divided into two sublayers: LLC and MAC. The MAC (Media Access Control) sublayer is responsible for data encapsulation and media access control. Its data encapsulation functions include frame delimiting, which uses bits to identify and synchronize fields within a frame, and error detection, which involves adding a trailer with a frame check sequence (FCS)."
+    },
+    {
+      n: 78,
+      q: "Which two functions are performed at the MAC sublayer of the OSI Data Link Layer to facilitate Ethernet communication? (Choose two.)",
+      choices: ["places information in the Ethernet frame that identifies which network layer protocol is being encapsulated by the frame", "adds Ethernet control information to network protocol data", "responsible for internal structure of Ethernet frame", "enables IPv4 and IPv6 to utilize the same physical medium", "implements trailer with frame check sequence for error detection"],
+      answer: [2, 4],
+      multi: true,
+      exp: "Topic 7.1.3<br>The MAC (Media Access Control) sublayer is responsible for hardware-based data encapsulation and media access. Its specific encapsulation functions include defining the internal structure of the Ethernet frame and providing error detection by implementing a trailer that contains the Frame Check Sequence (FCS)."
+    },
+    {
+      n: 79,
+      q: "Which two functions are performed at the MAC sublayer of the OSI Data Link Layer to facilitate Ethernet communication? (Choose two.)",
+      choices: ["integrates Layer 2 flows between 10 Gigabit Ethernet over fiber and 1 Gigabit Ethernet over copper", "enables IPv4 and IPv6 to utilize the same physical medium", "handles communication between upper layer networking software and Ethernet NIC hardware", "adds Ethernet control information to network protocol data", "implements CSMA/CD over legacy shared half-duplex media"],
+      answer: [0, 4],
+      multi: true,
+      exp: "Topic 7.1.3<br>The MAC (Media Access Control) sublayer is responsible for hardware-based data encapsulation and media access. Tasks such as identifying the encapsulated network layer protocol or enabling IPv4 and IPv6 to share the same physical medium are functions performed by the LLC sublayer."
+    },
+    {
+      n: 80,
+      q: "Which two functions are performed at the MAC sublayer of the OSI Data Link Layer to facilitate Ethernet communication? (Choose two.)",
+      choices: ["applies delimiting of Ethernet frame fields to synchronize communication between nodes", "places information in the Ethernet frame that identifies which network layer protocol is being encapsulated by the frame", "adds Ethernet control information to network protocol data", "implements trailer with frame check sequence for error detection", "handles communication between upper layer networking software and Ethernet NIC hardware"],
+      answer: [0, 3],
+      multi: true,
+      exp: "Topic 7.1.3<br>The MAC (Media Access Control) sublayer is responsible for hardware-based data encapsulation and media access. Its specific encapsulation functions include defining the internal structure of the Ethernet frame, framing (frame delimiting), and error detection."
+    },
+    {
+      n: 81,
+      q: "Which two functions are performed at the MAC sublayer of the OSI Data Link Layer to facilitate Ethernet communication? (Choose two.)",
+      choices: ["applies delimiting of Ethernet frame fields to synchronize communication between nodes", "applies source and destination MAC addresses to Ethernet frame", "places information in the Ethernet frame that identifies which network layer protocol is being encapsulated by the frame", "handles communication between upper layer networking software and Ethernet NIC hardware", "adds Ethernet control information to network protocol data"],
+      answer: [0, 1],
+      multi: true,
+      exp: "Topic 6.1.2<br>The OSI data link layer is divided into two sublayers: LLC and MAC. The MAC sublayer provides data link layer addressing (MAC addresses) and delimiting of data according to the physical signaling requirements of the medium."
+    },
+    {
+      n: 82,
+      q: "An IPv6 enabled device sends a data packet with the destination address of FF02::2. What is the target of this packet?",
+      choices: ["all IPv6 enabled devices on the local link", "all IPv6 DHCP servers", "all IPv6 enabled devices across the network", "all IPv6 configured routers on the local link"],
+      answer: [3],
+      multi: false,
+      exp: "Topic 12.7.2<br>FF02::2 identifies all IPv6 routers that exist on the link or network. FF02::1 is the target for all IPv6 enabled devices on the link or network."
+    },
+    {
+      n: 83,
+      q: "What are the three parts of an IPv6 global unicast address? (Choose three.)",
+      choices: ["subnet ID", "subnet mask", "broadcast address", "global routing prefix", "interface ID"],
+      answer: [0, 3, 4],
+      multi: true,
+      exp: "Topic 12.3.5<br>The general format for IPv6 global unicast addresses includes a global routing prefix, a subnet ID, and an interface ID. The global routing prefix is the network portion assigned by the provider. The interface ID is similar to the host portion of an IPv4 address."
+    },
+    {
+      n: 84,
+      q: "A network administrator is designing the layout of a new wireless network. Which three areas of concern should be accounted for when building a wireless network? (Choose three.)",
+      choices: ["extensive cabling", "mobility options", "packet collision", "interference", "security", "coverage area"],
+      answer: [3, 4, 5],
+      multi: true,
+      exp: "Topic 4.6.1<br>The three areas of concern for wireless networks focus on the size of the coverage area, any nearby interference, and providing network security."
+    },
+    {
+      n: 85,
+      q: "A new network administrator has been asked to enter a banner message on a Cisco device. What is the fastest way a network administrator could test whether the banner is properly configured?",
+      choices: ["Enter CTRL-Z at the privileged mode prompt.", "Exit global configuration mode.", "Power cycle the device.", "Reboot the device.", "Exit privileged EXEC mode and press Enter."],
+      answer: [4],
+      multi: false,
+      exp: "Topic 2.4.5<br>To verify the Message of the Day (MOTD) banner, you must exit completely out of privileged EXEC mode back to the initial login prompt and press Enter to see if the message displays correctly."
+    },
+    {
+      n: 86,
+      q: "What method is used to manage contention-based access on a wireless network?",
+      choices: ["token passing", "CSMA/CA", "priority ordering", "CSMA/CD"],
+      answer: [1],
+      multi: false,
+      exp: "Topic 6.2.8<br>Carrier sense multiple access with collision avoidance (CSMA/CA) is used with wireless networking technology to mediate media contention. CSMA/CD is used with wired Ethernet technology."
+    },
+    {
+      n: 87,
+      q: "What is a function of the data link layer?",
+      choices: ["provides the formatting of data", "provides end-to-end delivery of data between hosts", "provides delivery of data between two applications", "provides for the exchange of frames over a common local media"],
+      answer: [3],
+      multi: false,
+      exp: "Topic 6.1.1<br>The data link layer (Layer 2) is specifically responsible for the exchange of frames between network interface cards (NICs) over a common local media."
+    },
+    {
+      n: 88,
+      q: "What is the purpose of the TCP sliding window?",
+      choices: ["to ensure that segments arrive in order at the destination", "to end communication when data transmission is complete", "to inform a source to retransmit data from a specific point forward", "to request that a source decrease the rate at which it transmits data"],
+      answer: [3],
+      multi: false,
+      exp: "Topic 14.6.5<br>The TCP sliding window allows a destination device to inform a source to slow down the rate of transmission. It does this by reducing the value contained in the window field of the segment."
+    },
+    {
+      n: 89,
+      q: "What characteristic describes spyware?",
+      choices: ["a network device that filters access and traffic coming into a network", "software that is installed on a user device and collects information about the user", "an attack that slows or crashes a device or network service", "the use of stolen credentials to access private data"],
+      answer: [1],
+      multi: false,
+      exp: "Topic 1.8.1<br>Adware and spyware are types of software installed on a user's device that secretly collect information about the user."
+    },
+    {
+      n: 90,
+      q: "Which switching method drops frames that fail the FCS check?",
+      choices: ["store-and-forward switching", "borderless switching", "ingress port buffering", "cut-through switching"],
+      answer: [0],
+      multi: false,
+      exp: "Topic 7.4.1<br>The FCS check is used with store-and-forward switching to drop any frame with a FCS that does not match the FCS calculation that is made by a switch. Cut-through switching does not perform any error checking."
+    },
+    {
+      n: 91,
+      q: "Which range of link-local addresses can be assigned to an IPv6-enabled interface?",
+      choices: ["FEC0::/10", "FDEE::/7", "FE80::/10", "FF00::/8"],
+      answer: [2],
+      multi: false,
+      exp: "Topic 12.3.7<br>Link-local addresses are in the range of FE80::/10 to FEBF::/10. The original IPv6 specification defined site-local addresses and used the prefix range FEC0::/10, but these were deprecated in favor of unique local addresses."
+    },
+    {
+      n: 92,
+      q: "What service is provided by FTP?",
+      choices: ["A basic set of rules for exchanging text, graphic images, sound, video, and other multimedia files on the web.", "An application that allows real-time chatting among remote users.", "Allows for data transfers between a client and a file server.", "Uses encryption to secure the exchange of text, graphic images, sound, and video on the web."],
+      answer: [2],
+      multi: false,
+      exp: "Topic 15.5.1<br>The File Transfer Protocol (FTP) is an application layer protocol specifically designed to allow for data transfers between a client and a server. It enables a user to access, upload (push), and download (pull) files."
+    },
+    {
+      n: 93,
+      q: "A user is attempting to access http://www.cisco.com/ without success. Which two configuration values must be set on the host to allow this access? (Choose two.)",
+      choices: ["DNS server", "source port number", "HTTP server", "source MAC address", "default gateway"],
+      answer: [0, 4],
+      multi: true,
+      exp: "Topic 11.1.2<br>To successfully navigate to a remote website via a URL, the host needs a DNS server to translate the human-readable domain name into an IP address, and a default gateway to route the outbound traffic outside of its local network."
+    },
+    {
+      n: 94,
+      q: "Which two statements accurately describe an advantage or a disadvantage when deploying NAT for IPv4 in a network? (Choose two.)",
+      choices: ["NAT adds authentication capability to IPv4.", "NAT introduces problems for some applications that require end-to-end connectivity.", "NAT will impact negatively on switch performance.", "NAT provides a solution to slow down the IPv4 address depletion.", "NAT improves packet handling.", "NAT causes routing tables to include more information."],
+      answer: [1, 3],
+      multi: true,
+      exp: "Topic 12.1.1<br>Network Address Translation (NAT) provides a solution to slow down the IPv4 address depletion by sharing a few public IP addresses among many internal hosts. However, since NAT hides actual IP addresses, it may cause problems for applications that require end-to-end connectivity."
+    },
+    {
+      n: 95,
+      q: "What would be the interface ID of an IPv6 enabled interface with a MAC address of 1C-6F-65-C2-BD-F8 when the interface ID is generated by using the EUI-64 process?",
+      choices: ["0C6F:65FF:FEC2:BDF8", "1E6F:65FF:FEC2:BDF8", "C16F:65FF:FEC2:BDF8", "106F:65FF:FEC2:BDF8"],
+      answer: [1],
+      multi: false,
+      exp: "Topic 12.5.6<br>To derive the EUI-64 interface ID by using the MAC address, three steps are taken: 1) Change the seventh bit from 0 to 1 (hex C becomes E). 2) Insert FFFE into the middle. 3) Rewrite in IPv6 format. This yields 1E6F:65FF:FEC2:BDF8."
+    },
+    {
+      n: 96,
+      q: "Refer to the exhibit. PC1 issues an ARP request because it needs to send a packet to PC2. In this scenario, what will happen next?",
+      choices: ["SW1 will send an ARP reply with the SW1 Fa0/1 MAC address.", "SW1 will send an ARP reply with the PC2 MAC address.", "PC2 will send an ARP reply with the PC2 MAC address.", "RT1 will send an ARP reply with the RT1 Fa0/0 MAC address.", "RT1 will send an ARP reply with the PC2 MAC address."],
+      answer: [2],
+      multi: false,
+      exp: "Topic 9.2.4<br>Because PC1 and PC2 are connected to the same local switch network segment, PC1 will broadcast an ARP request. All devices on the LAN will receive it, but only PC2 will match the requested IP and send an ARP reply back containing its own MAC address."
+    },
+    {
+      n: 97,
+      q: "What service is provided by BOOTP?",
+      choices: ["Uses encryption to secure the exchange of text, graphic images, sound, and video on the web.", "Allows for data transfers between a client and a file server.", "Legacy application that enables a diskless workstation to discover its own IP address and find a BOOTP server on the network.", "A basic set of rules for exchanging text, graphic images, sound, video, and other multimedia files on the web."],
+      answer: [2],
+      multi: false,
+      exp: "Topic 3.3.4<br>BOOTP (Bootstrap Protocol) is a precursor to DHCP that allows diskless workstations to automatically discover their own IP address, locate a BOOTP server, and identify a file to be loaded into memory for booting the machine."
+    },
+    {
+      n: 98,
+      q: "What characteristic describes adware?",
+      choices: ["a network device that filters access and traffic coming into a network", "software that is installed on a user device and collects information about the user", "the use of stolen credentials to access private data", "an attack that slows or crashes a device or network service"],
+      answer: [1],
+      multi: false,
+      exp: "Topic 1.8.1<br>Adware and spyware are types of software installed on a user's device that secretly collect information about the user."
+    },
+    {
+      n: 99,
+      q: "When a switch configuration includes a user-defined error threshold on a per-port basis, to which switching method will the switch revert when the error threshold is reached?",
+      choices: ["cut-through", "store-and-forward", "fast-forward", "fragment-free"],
+      answer: [1],
+      multi: false,
+      exp: "Topic 7.4.2<br>When a switch is configured for cut-through switching, if a user-defined error threshold is reached, the port automatically reverts to store-and-forward switching to perform error checking on all frames before forwarding."
+    },
+    {
+      n: 100,
+      q: "Match a statement to the related network model. (Not all options are used.)\n\nPlace the options in the following order:\npeer-to-peer network\npeer-to-peer application",
+      choices: ["peer-to-peer network = no dedicated server is required, client and server roles are set on a per request basis; peer-to-peer application = requires a specific user interface, a background service is required", "peer-to-peer network = requires a specific user interface, a background service is required; peer-to-peer application = no dedicated server is required, client and server roles are set on a per request basis", "peer-to-peer network = devices can only function in one role at a time, no dedicated server is required; peer-to-peer application = a background service is required", "peer-to-peer network = client and server roles are set on a per request basis; peer-to-peer application = devices can only function in one role at a time"],
+      answer: [0],
+      multi: false,
+      exp: "Topic 15.2.2<br>Peer-to-peer networks do not require the use of a dedicated server, and devices can assume both client and server roles simultaneously on a per request basis. Peer-to-peer applications require a user interface and a background service to be running."
+    },
+    {
+      n: 101,
+      q: "What are two primary responsibilities of the Ethernet MAC sublayer? (Choose two.)",
+      choices: ["error detection", "frame delimiting", "accessing the media", "data encapsulation", "logical addressing"],
+      answer: [2, 3],
+      multi: true,
+      exp: "Topic 7.1.3<br>The MAC sublayer is primarily responsible for data encapsulation and accessing the media. Data encapsulation includes framing (frame delimiting), addressing, and error detection, while accessing the media involves controlling the hardware (NIC)."
+    },
+    {
+      n: 102,
+      q: "Refer to the exhibit. What three facts can be determined from the viewable output of the show ip interface brief command? (Choose three.)",
+      choices: ["Two physical interfaces have been configured.", "The switch can be remotely managed.", "One device is attached to a physical interface.", "Passwords have been configured on the switch.", "Two devices are attached to the switch.", "The default SVI has been configured."],
+      answer: [1, 2, 5],
+      multi: true,
+      exp: "Topic 17.5.7<br>Vlan1 is the default SVI and it has an IP address assigned. Because an SVI has been configured, the switch can be configured and managed remotely. Additionally, FastEthernet0/1 is showing up and up, meaning one device is successfully connected to a physical interface."
+    },
+    { n:103, q:"What is the subnet ID associated with the IPv6 address 2001:DA48:FC5:A4:3D1B::1/64?", choices:["2001:DA48::/64","2001:DA48:FC5::A4:/64","2001:DA48:FC5:A4::/64","2001::/64"], answer:[2], multi:false, exp:"Topic 12.3.6<br>The /64 represents the network and subnet IPv6 fields. The fourth field of hexadecimal digits is referred to as the subnet ID. The subnet ID for this address is 2001:DA48:FC5:A4::0/64." },
+    { n:104, q:"Match the firewall function to the type of threat protection it provides to the network. (Not all options are used.)\n\n• prevents access by port number\n• prevents access based on IP or MAC address\n• prevents unsolicited incoming sessions\n• prevents access to websites", choices:["prevents access by port number = application filtering; prevents access based on IP or MAC address = packet filtering; prevents unsolicited incoming sessions = stateful packet inspection; prevents access to websites = URL filtering","prevents access by port number = packet filtering; prevents access based on IP or MAC address = application filtering; prevents unsolicited incoming sessions = URL filtering; prevents access to websites = stateful packet inspection","prevents access by port number = URL filtering; prevents access based on IP or MAC address = stateful packet inspection; prevents unsolicited incoming sessions = packet filtering; prevents access to websites = application filtering","prevents access by port number = stateful packet inspection; prevents access based on IP or MAC address = URL filtering; prevents unsolicited incoming sessions = application filtering; prevents access to websites = packet filtering"], answer:[0], multi:false, exp:"Topic 16.3.6<br>Firewall products come packaged in various forms. These products use different techniques for determining what will be permitted or denied access to a network. They include the following:<br>+ Packet filtering – Prevents or allows access based on IP or MAC addresses<br>+ Application filtering – Prevents or allows access based by specific application types based on port numbers<br>+ URL filtering – Prevents or allows access to websites based on specific URLs or keywords<br>+ Stateful packet inspection (SPI) – Incoming packets must be legitimate responses to requests from internal hosts. Unsolicited packets are blocked unless permitted specifically. SPI can also include the capability to recognize and filter out specific types of attacks, such as denial of service (DoS)" },
+    { n:105, q:"Users are reporting longer delays in authentication and in accessing network resources during certain time periods of the week. What kind of information should network engineers check to find out if this situation is part of a normal network behavior?", choices:["syslog records and messages","the network performance baseline","debug output and packet captures","network configuration files"], answer:[1], multi:false, exp:"Topic 17.4.5<br>The network engineers should first establish that the reported performance of the network is in fact abnormal. This is done by referring to the documented network performance baseline. Once it has been verified that the network is not having a proper performance, then specific troubleshooting processes can be applied." },
+    { n:106, q:"How does the service password-encryption command enhance password security on Cisco routers and switches?", choices:["It requires encrypted passwords to be used when connecting remotely to a router or switch with Telnet.","It encrypts passwords that are stored in router or switch configuration files.","It requires that a user type encrypted passwords to gain console access to a router or switch.","It encrypts passwords as they are sent across the network."], answer:[1], multi:false, exp:"Topic 2.4.4<br>The service password-encryption command encrypts plaintext passwords in the configuration file so that they cannot be viewed by unauthorized users." },
+    { n:107, q:"Which two statements are correct in a comparison of IPv4 and IPv6 packet headers? (Choose two.)", choices:["The Source Address field name from IPv4 is kept in IPv6.","The Version field from IPv4 is not kept in IPv6.","The Destination Address field is new in IPv6.","The Header Checksum field name from IPv4 is kept in IPv6.","The Time-to-Live field from IPv4 has been replaced by the Hop Limit field in IPv6."], answer:[0,4], multi:true, exp:"Topic 8.3.3<br>The IPv6 packet header fields are as follows: Version, Traffic Class, Flow Label, Payload Length, Next Header, Hop Limit, Source Address, and Destination Address. The IPv4 packet header fields include the following: Version, Differentiated Services, Time-to-Live, Protocol, Source IP Address, and Destination IP Address. Both versions have a 4-bit Version field. Both versions have a Source (IP) Address field. IPv4 addresses are 32 bits; IPv6 addresses are 128 bits. The Time-to-Live or TTL field in IPv4 is now called Hop Limit in IPv6, but this field serves the same purpose in both versions. The value in this 8-bit field decrements each time a packet passes through any router. When this value is 0, the packet is discarded and is not forwarded to any other router." },
+    { n:108, q:"A network administrator wants to have the same network mask for all networks at a particular small site. The site has the following networks and number of devices:\nIP phones – 22 addresses\nPCs – 20 addresses needed\nPrinters – 2 addresses needed\nScanners – 2 addresses needed\n\nThe network administrator has deemed that 192.168.10.0/24 is to be the network used at this site. Which single subnet mask would make the most efficient use of the available addresses to use for the four subnetworks?", choices:["255.255.255.192","255.255.255.252","255.255.255.240","255.255.255.248","255.255.255.0","255.255.255.224"], answer:[5], multi:false, exp:"Topic 11.7.2<br>If the same mask is to be used, then the network with the most hosts must be examined for the number of hosts, which in this case is 22 hosts. Thus, 5 host bits are needed. The /27 or 255.255.255.224 subnet mask would be appropriate to use for these networks." },
+    { n:109, q:"What characteristic describes identity theft?", choices:["the use of stolen credentials to access private data","software on a router that filters traffic based on IP addresses or applications","software that identifies fast-spreading threats","a tunneling protocol that provides remote users with secure access into the network of an organization"], answer:[0], multi:false, exp:"Topic 1.8.1<br>Identity theft is a specific type of information theft where a threat actor steals login credentials or personal information to access private data. Once accessed, this information is often used to take over a person's identity to make unauthorized purchases or obtain legal documents." },
+    { n:110, q:"A network administrator is adding a new LAN to a branch office. The new LAN must support 200 connected devices. What is the smallest network mask that the network administrator can use for the new network?", choices:["255.255.255.240","255.255.255.0","255.255.255.248","255.255.255.224"], answer:[1], multi:false, exp:"Topic 11.7.2<br>To support 200 connected devices, the network administrator must choose a mask that provides at least 200 usable host addresses based on the formula 2n–2. A mask with 7 host bits (27–2=126) is insufficient, so 8 host bits are required (28–2=254). A 32-bit IPv4 address with 8 host bits leaves 24 bits for the network portion (/24), which corresponds to the subnet mask 255.255.255.0." },
+    { n:111, q:"What are three commonly followed standards for constructing and installing cabling? (Choose three.)", choices:["cost per meter (foot)","cable lengths","connector color","pinouts","connector types","tensile strength of plastic insulator"], answer:[1,3,4], multi:true, exp:"Topic 4.4.2<br>According to the TIA/EIA-568 standard, which governs commercial cabling for LAN environments, several physical elements are defined to ensure consistency and performance. These include cable lengths, the specific connector types used (such as RJ-45), and the wire color-coded pin assignments, commonly referred to as pinouts." },
+    { n:112, q:"Refer to the exhibit. What is wrong with the displayed termination?", choices:["The woven copper braid should not have been removed.","The wrong type of connector is being used.","The untwisted length of each wire is too long.","The wires are too thick for the connector that is used."], answer:[2], multi:false, exp:"Topic 4.4.2<br>When a cable to an RJ-45 connector is terminated, it is important to ensure that the untwisted wires are not too long and that the flexible plastic sheath surrounding the wires is crimped down and not the bare wires. None of the colored wires should be visible from the bottom of the jack." },
+    { n:113, q:"Match the characteristic to the category. (Not all options are used.)\n\nIP address:\n• contained in the Layer 3 header\n• separated into a network portion and a unique identifier\n• 32 or 128 bits\n\nMAC address:\n• contained in the Layer 2 header\n• separated into OUI and a unique identifier\n• 48 bits", choices:["IP address = Layer 3 header, network portion + unique ID, 32 or 128 bits; MAC address = Layer 2 header, OUI + unique ID, 48 bits","IP address = Layer 2 header, OUI + unique ID, 48 bits; MAC address = Layer 3 header, network portion + unique ID, 32 or 128 bits","IP address = Layer 3 header, OUI + unique ID, 32 or 128 bits; MAC address = Layer 2 header, network portion + unique ID, 48 bits","IP address = Layer 2 header, network portion + unique ID, 48 bits; MAC address = Layer 3 header, OUI + unique ID, 32 or 128 bits"], answer:[0], multi:false, exp:"Topic 9.1.1" },
+    { n:114, q:"A client packet is received by a server. The packet has a destination port number of 143. What service is the client requesting?", choices:["IMAP","FTP","SSH","Telnet"], answer:[0], multi:false, exp:"Topic 14.4.3<br>Destination port 143 is the well-known port for IMAP (Internet Message Access Protocol), which enables clients to access and maintain email stored on a mail server." },
+    { n:115, q:"What are two characteristics shared by TCP and UDP? (Choose two.)", choices:["default window size","connectionless communication","port numbering","3-way handshake","ability to carry digitized voice","use of checksum"], answer:[2,5], multi:true, exp:"Topic 14.1.2" },
+    { n:116, q:"Refer to the exhibit. Which two network addresses can be assigned to the network containing 10 hosts? Your answers should waste the fewest addresses, not reuse addresses that are already assigned, and stay within the 10.18.10.0/24 range of addresses. (Choose two.)", choices:["10.18.10.200/28","10.18.10.208/28","10.18.10.240/27","10.18.10.200/27","10.18.10.224/27","10.18.10.224/28"], answer:[1,5], multi:true, exp:"Topic 11.7.2<br>Addresses 10.18.10.0 through 10.18.10.63 are taken for the leftmost network. Addresses 192 through 199 are used by the center network. Because 4 host bits are needed to accommodate 10 hosts, a /28 mask is needed. 10.18.10.200/28 is not a valid network number. Two subnets that can be used are 10.18.10.208/28 and 10.18.10.224/28." },
+    { n:117, q:"A client packet is received by a server. The packet has a destination port number of 21. What service is the client requesting?", choices:["FTP","LDAP","SLP","SNMP"], answer:[0], multi:false, exp:"Topic 14.4.3<br>Destination port 21 is the well-known port used by FTP (File Transfer Protocol) for its control connection. This connection is established by the client to send commands to the server and receive replies, which is essential for managing the file transfer process." },
+    { n:118, q:"What attribute of a NIC would place it at the data link layer of the OSI model?", choices:["attached Ethernet cable","IP address","MAC address","RJ-45 port","TCP/IP protocol stack"], answer:[2], multi:false, exp:"Topic 7.2.2<br>The data link layer describes media access and physical addressing. The encoding of a MAC address on a NIC places it at that layer. Ports and cables are placed at the physical layer of the OSI model. IP addresses are placed at the network layer. The TCP/IP protocol stack describes a different model." },
+    { n:119, q:"A network administrator is adding a new LAN to a branch office. The new LAN must support 10 connected devices. What is the smallest network mask that the network administrator can use for the new network?", choices:["255.255.255.192","255.255.255.248","255.255.255.224","255.255.255.240"], answer:[3], multi:false, exp:"Topic 11.5.2<br>To support 10 connected devices, you must calculate the number of host bits required using the formula 2n–2. A mask with 3 host bits (23–2=6) is insufficient, so 4 host bits are needed, providing 14 usable host addresses (24–2=14). A 32-bit IPv4 address with 4 host bits leaves 28 bits for the network portion (/28), which corresponds to the subnet mask 255.255.255.240." },
+    { n:120, q:"What technique is used with UTP cable to help protect against signal interference from crosstalk?", choices:["wrapping a foil shield around the wire pairs","twisting the wires together into pairs","terminating the cable with special grounded connectors","encasing the cables within a flexible plastic sheath"], answer:[1], multi:false, exp:"Topic 4.4.1<br>To help prevent the effects of crosstalk, UTP cable wires are twisted together into pairs. Twisting the wires together causes the magnetic fields of each wire to cancel each other out." },
+    { n:121, q:"Refer to the exhibit. The network administrator has assigned the LAN of LBMISS an address range of 192.168.10.0. This address range has been subnetted using a /29 prefix. In order to accommodate a new building, the technician has decided to use the fifth subnet for configuring the new network (subnet zero is the first subnet). By company policies, the router interface is always assigned the first usable host address and the workgroup server is given the last usable host address. Which configuration should be entered into the properties of the workgroup server to allow connectivity to the Internet?", choices:["IP address: 192.168.10.65 subnet mask: 255.255.255.240, default gateway: 192.168.10.76","IP address: 192.168.10.38 subnet mask: 255.255.255.240, default gateway: 192.168.10.33","IP address: 192.168.10.38 subnet mask: 255.255.255.248, default gateway: 192.168.10.33","IP address: 192.168.10.41 subnet mask: 255.255.255.248, default gateway: 192.168.10.46","IP address: 192.168.10.254 subnet mask: 255.255.255.0, default gateway: 192.168.10.1"], answer:[2], multi:false, exp:"Topic 11.5.2" },
+    { n:122, q:"Refer to the exhibit. The switches are in their default configuration. Host A needs to communicate with host D, but host A does not have the MAC address for its default gateway. Which network hosts will receive the ARP request sent by host A?", choices:["only host D","only router R1","only hosts A, B, and C","only hosts A, B, C, and D","only hosts B and C","only hosts B, C, and router R1"], answer:[5], multi:false, exp:"Topic 11.4.1<br>Since host A does not have the MAC address of the default gateway in its ARP table, host A sends an ARP broadcast. The ARP broadcast would be sent to every device on the local network. Hosts B, C, and router R1 would receive the broadcast. Router R1 would not forward the message." },
+    { n:123, q:"Match a statement to the related network model. (Not all options are used.)\n\npeer-to-peer network:\n• no dedicated server is required\n• client and server roles are set on a per request basis\n\npeer-to-peer application:\n• requires a specific user interface\n• a background service is required", choices:["peer-to-peer network = no dedicated server is required, client and server roles are set on a per request basis; peer-to-peer application = requires a specific user interface, a background service is required","peer-to-peer network = requires a specific user interface, a background service is required; peer-to-peer application = no dedicated server is required, client and server roles are set on a per request basis","peer-to-peer network = devices can only function in one role at a time, no dedicated server is required; peer-to-peer application = a background service is required","peer-to-peer network = client and server roles are set on a per request basis; peer-to-peer application = devices can only function in one role at a time"], answer:[0], multi:false, exp:"Topic 5.2" },
+    { n:124, q:"Refer to the exhibit. A network engineer has been given the network address of 192.168.99.0 and a subnet mask of 255.255.255.192 to subnet across the four networks shown. How many total host addresses are unused across all four subnets?", choices:["88","200","72","224","158"], answer:[1], multi:false, exp:"Topic 11.5.2<br>Usable hosts per subnet: A subnet mask of 255.255.255.192 (/26) leaves 6 host bits (32–26=6). Using the formula 2n–2, each subnet provides 62 usable host addresses (26–2=62).<br>Used addresses: Across the four subnets, the total used addresses are 48 (30 for Network A, 14 for Network D, and 2 each for the router-to-router links in Networks B and C).<br>Total unused: With four subnets, there are 248 total usable addresses (62×4=248). Subtracting the 48 used addresses results in 200 unused host addresses (248–48=200)." },
+    { n:125, q:"Which connector is used with twisted-pair cabling in an Ethernet LAN?", choices:["LC connector","SC connector","BNC","RJ 11","RJ 45"], answer:[4], multi:false, exp:"Topic 4.4.2" },
+    { n:126, q:"A client packet is received by a server. The packet has a destination port number of 22. What service is the client requesting?", choices:["SSH","SMB/CIFS","HTTPS","SLP"], answer:[0], multi:false, exp:"Topic 14.4.3" },
+    { n:127, q:"What characteristic describes an IPS?", choices:["a tunneling protocol that provides remote users with secure access into the network of an organization","a network device that filters access and traffic coming into a network","software that identifies fast-spreading threats","software on a router that filters traffic based on IP addresses or applications"], answer:[2], multi:false, exp:"Topic 1.8.2<br>IPS – An intrusion prevention system (IPS) monitors incoming and outgoing traffic looking for malware, network attack signatures, and more. If it recognizes a threat, it can immediately stop it." },
+    { n:128, q:"What service is provided by DHCP?", choices:["An application that allows real-time chatting among remote users.","Allows remote access to network devices and servers.","Dynamically assigns IP addresses to end and intermediary devices.","Uses encryption to provide secure remote access to network devices and servers."], answer:[2], multi:false, exp:"Topic 15.4.6<br>DHCP (Dynamic Host Configuration Protocol) automates the assignment of IPv4 addresses, subnet masks, default gateways, and other parameters. It allows these addresses to be leased for a period of time and reused when no longer needed, which is more efficient than manual static addressing." },
+    { n:129, q:"Match the header field with the appropriate layer of the OSI model. (Not all options are used.)\n\nLayer 2: 802.2 header, FCS (Frame Check Sequence), Destination MAC Address\nLayer 3: TTL, Source IP Address\nLayer 4: Acknowledgment Number, Destination Port Number", choices:["Layer 2 = 802.2 header, FCS, Destination MAC Address; Layer 3 = TTL, Source IP Address; Layer 4 = Acknowledgment Number, Destination Port Number","Layer 2 = TTL, Source IP Address; Layer 3 = 802.2 header, FCS, Destination MAC Address; Layer 4 = Acknowledgment Number, Destination Port Number","Layer 2 = Acknowledgment Number, Destination Port Number; Layer 3 = TTL, Source IP Address; Layer 4 = 802.2 header, FCS, Destination MAC Address","Layer 2 = 802.2 header, FCS, Destination MAC Address; Layer 3 = Acknowledgment Number, Destination Port Number; Layer 4 = TTL, Source IP Address"], answer:[0], multi:false, exp:"Topic 3.6.3" },
+    { n:130, q:"Refer to the exhibit. The switches have a default configuration. Host A needs to communicate with host D, but host A does not have the MAC address for the default gateway. Which network devices will receive the ARP request sent by host A?", choices:["only host D","only hosts A, B, C, and D","only hosts B and C","only hosts B, C, and router R1","only hosts A, B, and C","only router R1"], answer:[3], multi:false, exp:"Topic 11.4.1<br>Because host A does not have the MAC address of the default gateway in the ARP table, host A sends an ARP broadcast. The ARP broadcast would be sent to every device on the local network. Hosts B, C, and router R1 would receive the broadcast. Router R1 would not forward the message." },
+    { n:131, q:"Which wireless technology has low-power and low-data rate requirements making it popular in IoT environments?", choices:["Bluetooth","Zigbee","WiMAX","Wi-Fi"], answer:[1], multi:false, exp:"Topic 4.6.2<br>Zigbee is a specification used for low-data rate, low-power communications. It is intended for applications that require short-range, low data-rates and long battery life. Zigbee is typically used for industrial and Internet of Things (IoT) environments such as wireless light switches and medical device data collection." },
+    { n:132, q:"What two ICMPv6 message types must be permitted through IPv6 access control lists to allow resolution of Layer 3 addresses to Layer 2 MAC addresses? (Choose two.)", choices:["neighbor solicitations","echo requests","neighbor advertisements","echo replies","router solicitations","router advertisements"], answer:[0,2], multi:true, exp:"Topic 9.3.3<br>IPv6 performs address resolution (mapping a known Layer 3 IPv6 address to a Layer 2 MAC address) using the Neighbor Discovery (ND) protocol instead of ARP. This process specifically requires Neighbor Solicitation (NS) messages to request the MAC address and Neighbor Advertisement (NA) messages to provide it; therefore, both must be permitted through access control lists for local network communication to function." },
+    { n:133, q:"A client is using SLAAC to obtain an IPv6 address for its interface. After an address has been generated and applied to the interface, what must the client do before it can begin to use this IPv6 address?", choices:["It must send a DHCPv6 INFORMATION-REQUEST message to request the address of the DNS server.","It must send a DHCPv6 REQUEST message to the DHCPv6 server to request permission to use this address.","It must send an ICMPv6 Router Solicitation message to determine what default gateway it should use.","It must send an ICMPv6 Neighbor Solicitation message to ensure that the address is not already in use on the network."], answer:[3], multi:false, exp:"Topic 12.5.7<br>Stateless DHCPv6 or stateful DHCPv6 uses a DHCP server, but Stateless Address Autoconfiguration (SLAAC) does not. A SLAAC client can automatically generate an address that is based on information from local routers via Router Advertisement (RA) messages. Once an address has been assigned to an interface via SLAAC, the client must ensure via Duplicate Address Detection (DAD) that the address is not already in use. It does this by sending out an ICMPv6 Neighbor Solicitation message and listening for a response. If a response is received, then it means that another device is already using this address." },
+    { n:134, q:"Two pings were issued from a host on a local network. The first ping was issued to the IP address of the default gateway of the host and it failed. The second ping was issued to the IP address of a host outside the local network and it was successful. What is a possible cause for the failed ping?", choices:["The default gateway is not operational.","The default gateway device is configured with the wrong IP address.","Security rules are applied to the default gateway device, preventing it from processing ping requests.","The TCP/IP stack on the default gateway is not working properly."], answer:[2], multi:false, exp:"Topic 13.2.3<br>If the ping from one host to another host on a remote network is successful, this indicates that the default gateway is operational. In this scenario, if a ping from one host to the default gateway failed, it is possible that some security features are applied to the router interface, preventing it from responding to ping requests." },
+    { n:135, q:"An organization is assigned an IPv6 address block of 2001:db8:0:ca00::/56. How many subnets can be created without using bits in the interface ID space?", choices:["256","512","1024","4096"], answer:[0], multi:false, exp:"Topic 12.8.1<br>The organization is assigned a /56 prefix. Since a standard IPv6 subnet uses a /64 prefix length to preserve the 64-bit interface ID space, there are 8 bits available for subnetting (64–56=8). Using the formula 2n, where n is the number of bits, 28 allows for the creation of 256 subnets." },
+    { n:136, q:"What subnet mask is needed if an IPv4 network has 40 devices that need IP addresses and address space is not to be wasted?", choices:["255.255.255.0","255.255.255.240","255.255.255.128","255.255.255.192","255.255.255.224"], answer:[3], multi:false, exp:"Topic 11.5.2<br>In order to accommodate 40 devices, 6 host bits are needed. With 6 bits, 64 addresses are possible, but one address is for the subnet number and one address is for a broadcast. This leaves 62 addresses that can be assigned to network devices. The mask associated with leaving 6 host bits for addressing is 255.255.255.192." },
+    { n:137, q:"Refer to the exhibit. If host A sends an IP packet to host B, what will the destination address be in the frame when it leaves host A?", choices:["DD:DD:DD:DD:DD:DD","172.168.10.99","CC:CC:CC:CC:CC:CC","172.168.10.65","BB:BB:BB:BB:BB:BB","AA:AA:AA:AA:AA:AA"], answer:[4], multi:false, exp:"Topic 9.1.2<br>When a host sends information to a distant network, the Layer 2 frame header will contain a source and destination MAC address. The source address will be the originating host device. The destination address will be the router interface that connects to the same network. In the case of host A sending information to host B, the source address is AA:AA:AA:AA:AA:AA and the destination address is the MAC address assigned to the R2 Ethernet interface, BB:BB:BB:BB:BB:BB." },
+    { n:138, q:"What is a benefit of using cloud computing in networking?", choices:["Technology is integrated into every-day appliances allowing them to interconnect with other devices, making them more 'smart' or automated.","Network capabilities are extended without requiring investment in new infrastructure, personnel, or software.","End users have the freedom to use personal tools to access information and communicate across a business network.","Home networking uses existing electrical wiring to connect devices to the network wherever there is an electrical outlet, saving the cost of installing data cables."], answer:[1], multi:false, exp:"Topic 1.7.6" },
+    { n:139, q:"Which two statements are correct about MAC and IP addresses during data transmission if NAT is not involved? (Choose two.)", choices:["Destination IP addresses in a packet header remain constant along the entire path to a target host.","Destination MAC addresses will never change in a frame that goes across seven routers.","Every time a frame is encapsulated with a new destination MAC address, a new destination IP address is needed.","Destination and source MAC addresses have local significance and change every time a frame goes from one LAN to another.","A packet that has crossed four routers has changed the destination IP address four times."], answer:[0,3], multi:true, exp:"Topic 9.1.2<br>IP addresses (Layer 3) represent the original source and final destination of a packet and remain constant throughout the entire path across multiple networks, provided NAT is not involved. In contrast, MAC addresses (Layer 2) have local significance only and are used to deliver a frame from one network interface to another within the same network. Every time a packet reaches a router, the Layer 2 frame is stripped off and a new frame with updated source and destination MAC addresses is created for the next segment of the journey." },
+    { n:140, q:"What is one main characteristic of the data link layer?", choices:["It generates the electrical or optical signals that represent the 1 and 0 on the media.","It converts a stream of data bits into a predefined code.","It shields the upper layer protocol from being aware of the physical medium to be used in the communication.","It accepts Layer 3 packets and decides the path by which to forward the packet to a remote network."], answer:[2], multi:false, exp:"Topic 6.1.1<br>The data link layer (Layer 2) prepares network data for the physical network and enables upper layers to access the media while remaining completely unaware of the type of physical medium used. Without this layer, higher-level protocols like IP would have to be specifically designed to connect to every possible type of media along a delivery path." },
+    { n:141, q:"What are three characteristics of the CSMA/CD process? (Choose three.)", choices:["The device with the electronic token is the only one that can transmit after a collision.","A device listens and waits until the media is not busy before transmitting.","After detecting a collision, hosts can attempt to resume transmission after a random time delay has expired.","All of the devices on a segment see data that passes on the network medium.","A jam signal indicates that the collision has cleared and the media is not busy.","Devices can be configured with a higher transmission priority."], answer:[1,2,3], multi:true, exp:"Topic 6.2.7<br>The Carrier Sense Multiple Access/Collision Detection (CSMA/CD) process is a contention-based media access control mechanism used on shared media access networks, such as Ethernet. When a device needs to transmit data, it listens and waits until the media is available (quiet), then it will send data. If two devices transmit at the same time, a collision will occur. Both devices will detect the collision on the network. When a device detects a collision, it will stop the data transmission process, wait for a random amount of time, then try again." },
+    { n:142, q:"Which information does the show startup-config command display?", choices:["the IOS image copied into RAM","the bootstrap program in the ROM","the contents of the current running configuration file in the RAM","the contents of the saved configuration file in the NVRAM"], answer:[3], multi:false, exp:"Topic 2.5.1<br>The show startup-config command displays the saved configuration located in NVRAM. The show running-config command displays the contents of the currently running configuration file located in RAM." },
+    { n:143, q:"Which two commands can be used on a Windows host to display the routing table? (Choose two.)", choices:["netstat -s","route print","show ip route","netstat -r","tracert"], answer:[1,3], multi:true, exp:"Topic 8.4.4<br>On a Windows host, the route print or netstat -r commands can be used to display the host routing table. Both commands generate the same output. On a router, the show ip route command is used to display the routing table. The netstat –s command is used to display per-protocol statistics. The tracert command is used to display the path that a packet travels to its destination." },
+    { n:144, q:"What are two functions that are provided by the network layer? (Choose two.)", choices:["directing data packets to destination hosts on other networks","placing data on the network medium","carrying data between processes that are running on source and destination hosts","providing dedicated end-to-end connections","providing end devices with a unique network identifier"], answer:[0,4], multi:true, exp:"Topic 8.1.1<br>The network layer is primarily concerned with passing data from a source to a destination on another network. IP addresses supply unique identifiers for the source and destination. The network layer provides connectionless, best-effort delivery. Devices rely on higher layers to supply services to processes." },
+    { n:145, q:"Which two statements describe features of an IPv4 routing table on a router? (Choose two.)", choices:["Directly connected interfaces will have two route source codes in the routing table: C and S.","If there are two or more possible routes to the same destination, the route associated with the higher metric value is included in the routing table.","The netstat -r command can be used to display the routing table of a router.","The routing table lists the MAC addresses of each active interface.","It stores information about routes derived from the active router interfaces.","If a default static route is configured in the router, an entry will be included in the routing table with source code S."], answer:[4,5], multi:true, exp:"Topic 8.5.6<br>The show ip route command is used to display the routing table of the router. In IPv4, directly connected interfaces will have one source code: C. The routing table stores information about directly connected routes and remote routes. An entry in the routing table with a source code of S is included if a default static route is configured on the router." },
+    { n:146, q:"What characteristic describes a VPN?", choices:["software on a router that filters traffic based on IP addresses or applications","software that identifies fast-spreading threats","a tunneling protocol that provides remote users with secure access into the network of an organization","a network device that filters access and traffic coming into a network"], answer:[2], multi:false, exp:"Topic 1.8.2<br>A VPN (Virtual Private Network) uses a router to create secure encrypted tunnels that provide remote workers with secure access to an organization's network resources. This connection allows a remote user to access internal servers as if they were a host directly within the intranet." },
+    { n:147, q:"Why would a Layer 2 switch need an IP address?", choices:["to enable the switch to send broadcast frames to attached PCs","to enable the switch to function as a default gateway","to enable the switch to be managed remotely","to enable the switch to receive frames from attached PCs"], answer:[2], multi:false, exp:"Topic 10.3.2<br>A switch, as a Layer 2 device, does not need an IP address to transmit frames to attached devices. However, when a switch is accessed remotely through the network, it must have a Layer 3 address. The IP address must be applied to a virtual interface rather than to a physical interface. Routers, not switches, function as default gateways." },
+    { n:148, q:"Match each description to its corresponding term. (Not all options are used.)\n\n• message encapsulation → the process of placing one message format inside another message format\n• message sizing → the process of breaking up a long message into individual pieces before being sent over the network\n• message encoding → the process of converting information from one format into another acceptable for transmission", choices:["message encapsulation = placing one message format inside another; message sizing = breaking up a long message into individual pieces; message encoding = converting information from one format into another","message encapsulation = converting information from one format into another; message sizing = placing one message format inside another; message encoding = breaking up a long message into individual pieces","message encapsulation = breaking up a long message into individual pieces; message sizing = converting information from one format into another; message encoding = placing one message format inside another","message encapsulation = placing one message format inside another; message sizing = converting information from one format into another; message encoding = breaking up a long message into individual pieces"], answer:[0], multi:false, exp:"Topic 3.1.5" },
+    { n:149, q:"A user sends an HTTP request to a web server on a remote network. During encapsulation for this request, what information is added to the address field of a frame to indicate the destination?", choices:["the network domain of the destination host","the IP address of the default gateway","the MAC address of the destination host","the MAC address of the default gateway"], answer:[3], multi:false, exp:"Topic 9.1.2<br>A frame is encapsulated with source and destination MAC addresses. The source device will not know the MAC address of the remote host. An ARP request will be sent by the source and will be responded to by the router. The router will respond with the MAC address of its interface, the one which is connected to the same network as the source." },
+    { n:150, q:"What is an advantage to using a protocol that is defined by an open standard?", choices:["A company can monopolize the market.","The protocol can only be run on equipment from a specific vendor.","An open standard protocol is not controlled or regulated by standards organizations.","It encourages competition and promotes choices."], answer:[3], multi:false, exp:"Topic 3.4.1<br>A monopoly by one company is not a good idea from a user point of view. If a protocol can only be run on one brand, it makes it difficult to have mixed equipment in a network. A proprietary protocol is not free to use. An open standard protocol will in general be implemented by a wide range of vendors." },
+    { n:151, q:"Data is being sent from a source PC to a destination server. Which three statements correctly describe the function of TCP or UDP in this situation? (Choose three.)", choices:["The source port field identifies the running application or service that will handle data returning to the PC.","The TCP process running on the PC randomly selects the destination port when establishing a session with the server.","UDP segments are encapsulated within IP packets for transport across the network.","The UDP destination port number identifies the application or service on the server which will handle the data.","TCP is the preferred protocol when a function requires lower network overhead.","The TCP source port number identifies the sending host on the network."], answer:[0,2,3], multi:true, exp:"Topic 14.4.2<br>Layer 4 port numbers identify the application or service which will handle the data. The source port number is added by the sending device and will be the destination port number when the requested information is returned. Layer 4 segments are encapsulated within IP packets. UDP, not TCP, is used when low overhead is needed. A source IP address, not a TCP source port number, identifies the sending host on the network. Destination port numbers are specific ports that a server application or service monitors for requests." },
+    { n:152, q:"Match each description with the corresponding TCP mechanism. (Not all options are used.)\n\n• number of bytes a destination device can accept and process at one time → window size\n• used to identify missing segments of data → sequence numbers\n• method of managing segments of data loss → retransmission\n• received by a sender before transmitting more segments in a session → acknowledgment", choices:["number of bytes = window size; missing segments = sequence numbers; data loss management = retransmission; received before transmitting = acknowledgment","number of bytes = sequence numbers; missing segments = window size; data loss management = acknowledgment; received before transmitting = retransmission","number of bytes = acknowledgment; missing segments = retransmission; data loss management = sequence numbers; received before transmitting = window size","number of bytes = retransmission; missing segments = acknowledgment; data loss management = window size; received before transmitting = sequence numbers"], answer:[0], multi:false, exp:"Topic 14.6" },
+    { n:153, q:"Refer to the exhibit. A company uses the address block of 128.107.0.0/16 for its network. What subnet mask would provide the maximum number of equal size subnets while providing enough host addresses for each subnet in the exhibit?", choices:["255.255.255.192","255.255.255.0","255.255.255.128","255.255.255.240","255.255.255.224"], answer:[2], multi:false, exp:"Topic 11.7.2<br>The largest subnet in the topology has 100 hosts in it so the subnet mask must have at least 7 host bits in it (27-2=126). 255.255.255.0 has 8 hosts bits, but this does not meet the requirement of providing the maximum number of subnets." },
+    { n:154, q:"A network administrator wants to have the same subnet mask for three subnetworks at a small site. The site has the following networks and numbers of devices:\n\nSubnetwork A: IP phones – 10 addresses\nSubnetwork B: PCs – 8 addresses\nSubnetwork C: Printers – 2 addresses\n\nWhat single subnet mask would be appropriate to use for the three subnetworks?", choices:["255.255.255.0","255.255.255.240","255.255.255.248","255.255.255.252"], answer:[1], multi:false, exp:"Topic 11.7.2<br>If the same mask is to be used, then the network with the most hosts must be examined for number of hosts. Because this is 10 hosts, 4 host bits are needed. The /28 or 255.255.255.240 subnet mask would be appropriate to use for these networks." },
+    { n:155, q:"Match each item to the type of topology diagram on which it is typically identified. (Not all options are used.)\n\nphysical topology diagram:\n• location of a desktop PC in a classroom\n• path of cables that connect rooms to wiring closets\n\nlogical topology diagram:\n• IP address of a server", choices:["physical = location of desktop PC, path of cables; logical = IP address of a server","physical = IP address of a server, path of cables; logical = location of desktop PC","physical = location of desktop PC, IP address of a server; logical = path of cables","physical = path of cables; logical = location of desktop PC, IP address of a server"], answer:[0], multi:false, exp:"Topic 1.3.2<br>A logical topology diagram typically depicts the IP addressing scheme and groupings of devices and ports. A physical topology diagram shows how those devices are connected to each other and the network, focusing on the physical locations of intermediary devices, configured ports, and cabling." },
+    { n:156, q:"What two pieces of information are displayed in the output of the show ip interface brief command? (Choose two.)", choices:["IP addresses","interface descriptions","MAC addresses","next-hop addresses","Layer 1 statuses","speed and duplex settings"], answer:[0,4], multi:true, exp:"Topic 10.2.3<br>The command show ip interface brief shows the IP address of each interface, as well as the operational status of the interfaces at both Layer 1 and Layer 2. In order to see interface descriptions and speed and duplex settings, use the command show running-config interface. Next-hop addresses are displayed in the routing table with the command show ip route, and the MAC address of an interface can be seen with the command show interfaces." },
+    { n:157, q:"A user is complaining that an external web page is taking longer than normal to load. The web page does eventually load on the user machine. Which tool should the technician use with administrator privileges in order to locate where the issue is in the network?", choices:["ping","nslookup","tracert","ipconfig /displaydns"], answer:[2], multi:false, exp:"Topic 17.4.3<br>The Command Prompt command tracert will map the path from the PC to the web server and measure transit delays of packets across the network." },
+    { n:158, q:"Which value, that is contained in an IPv4 header field, is decremented by each router that receives a packet?", choices:["Header Length","Differentiated Services","Time-to-Live","Fragment Offset"], answer:[2], multi:false, exp:"Topic 8.2.2<br>When a router receives a packet, the router will decrement the Time-to-Live (TTL) field by one. When the field reaches zero, the receiving router will discard the packet and will send an ICMP Time Exceeded message to the sender." },
+    { n:159, q:"A network technician is researching the use of fiber optic cabling in a new technology center. Which two issues should be considered before implementing fiber optic media? (Choose two.)", choices:["Fiber optic cabling requires different termination and splicing expertise from what copper cabling requires.","Fiber optic cabling requires specific grounding to be immune to EMI.","Fiber optic cabling is susceptible to loss of signal due to RFI.","Fiber optic cable is able to withstand rough handling.","Fiber optic provides higher data capacity but is more expensive than copper cabling."], answer:[0,4], multi:true, exp:"Topic 4.5.6<br>Fiber optic media is more expensive than copper cabling used over the same distance. Fiber optic cables use light instead of an electrical signal, so EMI and RFI are not issues. However, fiber optic does require different skills to terminate and splice." },
+    { n:160, q:"Match each description with an appropriate IP address. (Not all options are used.)\n\n• an experimental address → 240.2.6.255\n• a link-local address → 169.254.1.5\n• a public address → 198.133.219.2\n• a loopback address → 127.0.0.1", choices:["experimental = 240.2.6.255; link-local = 169.254.1.5; public = 198.133.219.2; loopback = 127.0.0.1","experimental = 127.0.0.1; link-local = 198.133.219.2; public = 169.254.1.5; loopback = 240.2.6.255","experimental = 169.254.1.5; link-local = 240.2.6.255; public = 127.0.0.1; loopback = 198.133.219.2","experimental = 198.133.219.2; link-local = 127.0.0.1; public = 240.2.6.255; loopback = 169.254.1.5"], answer:[0], multi:false, exp:"Topic 11.3.4" },
+    { n:161, q:"A user is executing a tracert to a remote device. At what point would a router, which is in the path to the destination device, stop forwarding the packet?", choices:["when the router receives an ICMP Time Exceeded message","when the RTT value reaches zero","when the host responds with an ICMP Echo Reply message","when the value in the TTL field reaches zero","when the values of both the Echo Request and Echo Reply messages reach zero"], answer:[3], multi:false, exp:"Topic 13.1.4<br>When a router receives a traceroute packet, the value in the TTL field is decremented by 1. When the value in the field reaches zero, the receiving router will not forward the packet, and will send an ICMP Time Exceeded message back to the source." },
+    { n:162, q:"Users report that the network access is slow. After questioning the employees, the network administrator learned that one employee downloaded a third-party scanning program for the printer. What type of malware might be introduced that causes slow performance of the network?", choices:["virus","worm","phishing","spam"], answer:[1], multi:false, exp:"Topic 16.2.1<br>A cybersecurity specialist needs to be familiar with the characteristics of the different types of malware and attacks that threaten an organization." },
+  ]
+};
+
+// ── GLOBAL STATE ──
+let currentExamKey = '';
+let currentQuestions = [];
+let orderMap = []; 
+let selections = {};
+let checkedState = {};
+let correctCount = 0;
+let wrongCount = 0;
+let answeredCount = 0;
+
+// ── LOCAL STORAGE HELPERS ──
+// Use v3 to guarantee new array loads
+function getStorageKey() { return 'ccna_state_v3_' + currentExamKey; }
+
+function saveState() {
+  if (!currentExamKey) return;
+  const state = {
+    orderMap,
+    checkedState,
+    selections: {}
+  };
+  for (const k in selections) {
+    state.selections[k] = [...selections[k]];
+  }
+  localStorage.setItem(getStorageKey(), JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = localStorage.getItem(getStorageKey());
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      orderMap = parsed.orderMap || [];
+      checkedState = parsed.checkedState || {};
+      
+      // Safety check: if cached array is shorter/longer than the bank, invalidate.
+      if (orderMap.length !== currentQuestions.length) return false;
+
+      selections = {};
+      for (const k in parsed.selections) {
+        selections[k] = new Set(parsed.selections[k]);
+      }
+      
+      correctCount = 0;
+      wrongCount = 0;
+      answeredCount = 0;
+      
+      orderMap.forEach(qIdx => {
+        if (checkedState[qIdx]) {
+          answeredCount++;
+          const q = currentQuestions[qIdx];
+          const sel = selections[qIdx] ? [...selections[qIdx]] : [];
+          const correctSet = new Set(q.answer);
+          const selSet = new Set(sel);
+          const isCorrect = q.answer.length === sel.length && q.answer.every(a => selSet.has(a));
+          if (isCorrect) correctCount++;
+          else wrongCount++;
+        }
+      });
+      return true; 
+    } catch(e) {
+      console.warn("Failed to parse saved state", e);
+    }
+  }
+  return false;
+}
+
+// ── FLOW CONTROL ──
+function switchExam(examKey) {
+  document.querySelectorAll('.selector-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-${examKey}`).classList.add('active');
+
+  currentExamKey = examKey;
+  currentQuestions = EXAM_BANKS[examKey];
+
+  if (!loadState()) {
+    initFreshState(false);
+  }
+
+  const subtitle = examKey === 'mod16_17' ? '// MOD 16-17' : '// FINALS_PRACTICE';
+  document.getElementById('header-subtitle').textContent = subtitle;
+  document.getElementById('header-q-count').textContent = `[ ${currentQuestions.length} QUESTIONS ]`;
+
+  renderUI();
+}
+
+function initFreshState(shuffle = false) {
+  correctCount = 0;
+  wrongCount = 0;
+  answeredCount = 0;
+  selections = {};
+  checkedState = {};
+  
+  orderMap = Array.from({length: currentQuestions.length}, (_, i) => i);
+  if (shuffle) {
+    for (let i = orderMap.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [orderMap[i], orderMap[j]] = [orderMap[j], orderMap[i]];
+    }
+  }
+  saveState();
+}
+
+function renderUI() {
+  const main = document.getElementById('quiz-main');
+  const trackerGrid = document.getElementById('tracker-grid');
+  
+  main.innerHTML = '';
+  trackerGrid.innerHTML = '';
+
+  if (currentQuestions.length === 0) {
+    main.innerHTML = '<div class="empty-state">// ERROR 404: EXAM BANK EMPTY OR UNDER CONSTRUCTION <br><br> <span style="font-size: 0.8rem; color: var(--text-dim);">[ SYSTEM AWAITING UPLOAD ]</span></div>';
+    document.getElementById('submit-area').style.display = 'none';
+    updateProgress();
+    updateScoreBoard();
+    return;
+  }
+  
+  document.getElementById('submit-area').style.display = 'block';
+
+  orderMap.forEach((qIdx, visualIndex) => {
+    const q = currentQuestions[qIdx];
+    const displayNum = visualIndex + 1;
+
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = `q-card-${qIdx}`;
+
+    const hdr = document.createElement('div');
+    hdr.className = 'q-header';
+    const numBadge = document.createElement('div');
+    numBadge.className = 'q-num';
+    numBadge.textContent = `Q${String(displayNum).padStart(2,'0')}`;
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.innerHTML = q.q.replace(/\n/g, '<br>');
+    
+    if (q.multi) {
+      const badge = document.createElement('div');
+      badge.className = 'q-multi-badge';
+      const required = q.answer.length;
+      badge.textContent = `[ SELECT MULTIPLE: ${required} ]`;
+      qText.appendChild(document.createElement('br'));
+      qText.appendChild(badge);
+    }
+    hdr.appendChild(numBadge);
+    hdr.appendChild(qText);
+    card.appendChild(hdr);
+
+    const choicesDiv = document.createElement('div');
+    choicesDiv.className = 'q-choices' + (q.multi ? ' multi' : '');
+    choicesDiv.id = `choices-${qIdx}`;
+
+    const isChecked = checkedState[qIdx];
+    const correctSet = new Set(q.answer);
+    const selSet = selections[qIdx] || new Set();
+
+    q.choices.forEach((c, ci) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.dataset.idx = ci;
+      
+      const indicator = document.createElement('div');
+      indicator.className = 'choice-indicator';
+      const label = document.createElement('span');
+      label.textContent = c;
+      
+      btn.appendChild(indicator);
+      btn.appendChild(label);
+      
+      if (selSet.has(ci)) btn.classList.add('selected');
+      
+      if (isChecked) {
+        btn.disabled = true;
+        btn.classList.remove('selected');
+        if (correctSet.has(ci)) {
+          btn.classList.add('correct-ans');
+        } else if (selSet.has(ci)) {
+          btn.classList.add('wrong-ans');
+        }
+      } else {
+        btn.addEventListener('click', () => selectChoice(qIdx, ci));
+      }
+
+      choicesDiv.appendChild(btn);
+    });
+    card.appendChild(choicesDiv);
+
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation';
+    expDiv.id = `exp-${qIdx}`;
+    expDiv.innerHTML = `<strong>// SYSTEM_OUTPUT</strong>${q.exp}`;
+    if (isChecked) expDiv.classList.add('show');
+    card.appendChild(expDiv);
+
+    const actDiv = document.createElement('div');
+    actDiv.className = 'q-actions';
+
+    const checkBtn = document.createElement('button');
+    checkBtn.className = 'btn btn-check';
+    checkBtn.id = `check-btn-${qIdx}`;
+    
+    if (isChecked) {
+      checkBtn.textContent = '[ VERIFIED ]';
+      checkBtn.disabled = true;
+    } else {
+      checkBtn.textContent = '[ VERIFY_ANSWER ]';
+      checkBtn.addEventListener('click', () => checkAnswer(qIdx));
+    }
+    actDiv.appendChild(checkBtn);
+
+    if (q.multi) {
+      const freeBtn = document.createElement('button');
+      freeBtn.className = 'btn btn-free';
+      freeBtn.id = `free-btn-${qIdx}`;
+      freeBtn.textContent = '[ CLEAR_SELECTION ]';
+      if (isChecked) freeBtn.disabled = true;
+      else freeBtn.addEventListener('click', () => freeSelection(qIdx));
+      actDiv.appendChild(freeBtn);
+    }
+    
+    // Inline Error Message Container
+    const errSpan = document.createElement('span');
+    errSpan.className = 'error-msg';
+    errSpan.id = `error-${qIdx}`;
+    actDiv.appendChild(errSpan);
+    
+    card.appendChild(actDiv);
+    main.appendChild(card);
+
+    const tItem = document.createElement('div');
+    tItem.className = 'tracker-item';
+    tItem.id = `tracker-item-${qIdx}`;
+    tItem.textContent = String(displayNum).padStart(2, '0');
+    tItem.onclick = () => {
+      document.getElementById(`q-card-${qIdx}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    
+    if (isChecked) {
+      const isCorrect = q.answer.length === selSet.size && q.answer.every(a => selSet.has(a));
+      tItem.classList.add(isCorrect ? 'correct' : 'wrong');
+    }
+    trackerGrid.appendChild(tItem);
+  });
+
+  updateProgress();
+  updateScoreBoard();
+}
+
+function selectChoice(qIdx, choiceIdx) {
+  if (checkedState[qIdx]) return;
+  const q = currentQuestions[qIdx];
+  if (!selections[qIdx]) selections[qIdx] = new Set();
+  
+  if (q.multi) {
+    if (selections[qIdx].has(choiceIdx)) selections[qIdx].delete(choiceIdx);
+    else selections[qIdx].add(choiceIdx);
+  } else {
+    selections[qIdx].clear();
+    selections[qIdx].add(choiceIdx);
+  }
+  
+  renderChoices(qIdx);
+  saveState();
+}
+
+function renderChoices(qIdx) {
+  const choicesDiv = document.getElementById(`choices-${qIdx}`);
+  const btns = choicesDiv.querySelectorAll('.choice-btn');
+  btns.forEach((btn, ci) => {
+    btn.classList.toggle('selected', !!(selections[qIdx] && selections[qIdx].has(ci)));
+  });
+}
+
+function freeSelection(qIdx) {
+  if (checkedState[qIdx]) return;
+  if (selections[qIdx]) selections[qIdx].clear();
+  renderChoices(qIdx);
+  saveState();
+}
+
+function checkAnswer(qIdx) {
+  if (checkedState[qIdx]) return;
+  
+  const q = currentQuestions[qIdx];
+  const sel = selections[qIdx] ? [...selections[qIdx]] : [];
+  const errSpan = document.getElementById(`error-${qIdx}`);
+  
+  if (errSpan) errSpan.style.display = 'none'; // clear past errors
+
+  if (sel.length === 0) return; 
+  if (q.multi && sel.length !== q.answer.length) {
+      if (errSpan) {
+          errSpan.textContent = `[ SYSTEM_ERROR ]: Please select exactly ${q.answer.length} options.`;
+          errSpan.style.display = 'inline-block';
+      }
+      return;
+  }
+
+  checkedState[qIdx] = true;
+  
+  const checkBtn = document.getElementById(`check-btn-${qIdx}`);
+  checkBtn.disabled = true;
+  checkBtn.textContent = '[ VERIFIED ]';
+  
+  const freeBtn = document.getElementById(`free-btn-${qIdx}`);
+  if (freeBtn) freeBtn.disabled = true;
+
+  const choicesDiv = document.getElementById(`choices-${qIdx}`);
+  const btns = choicesDiv.querySelectorAll('.choice-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const correctSet = new Set(q.answer);
+  const selSet = new Set(sel);
+  const isCorrect = q.answer.length === sel.length && q.answer.every(a => selSet.has(a));
+
+  answeredCount++;
+  if (isCorrect) correctCount++;
+  else wrongCount++;
+  
+  updateProgress();
+  updateScoreBoard();
+
+  const tItem = document.getElementById(`tracker-item-${qIdx}`);
+  if (tItem) {
+    tItem.classList.add(isCorrect ? 'correct' : 'wrong');
+  }
+
+  btns.forEach((btn, ci) => {
+    btn.classList.remove('selected');
+    if (correctSet.has(ci)) btn.classList.add('correct-ans');
+    else if (selSet.has(ci)) btn.classList.add('wrong-ans');
+  });
+
+  document.getElementById(`exp-${qIdx}`).classList.add('show');
+  saveState();
+}
+
+function updateScoreBoard() {
+  document.getElementById('correct-count').textContent = correctCount;
+  document.getElementById('wrong-count').textContent = wrongCount;
+}
+
+function updateProgress() {
+  const total = currentQuestions.length;
+  const pct = total === 0 ? 0 : (answeredCount / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `> PROGRESS: ${answeredCount} / ${total} ANSWERED`;
+}
+
+// ── SUBMISSION & MODALS ──
+function submitQuiz() {
+  const total = currentQuestions.length;
+  if (total === 0) return;
+
+  const pct = Math.round((correctCount / total) * 100);
+  const pass = pct >= 60;
+
+  document.getElementById('modal-icon').textContent = pass ? '💻' : '⚠️';
+  document.getElementById('modal-title').textContent = pass ? 'ACCESS_GRANTED' : 'ACCESS_DENIED';
+  document.getElementById('modal-score').textContent = pct + '%';
+  document.getElementById('modal-score').className = 'modal-score ' + (pass ? 'modal-pass' : 'modal-fail');
+  document.getElementById('modal-ratio').textContent = `> ${correctCount} / ${total} CORRECT`;
+  
+  const v = document.getElementById('modal-verdict');
+  v.textContent = pass ? '[ STATUS: PASSED ]' : '[ STATUS: FAILED ]';
+  v.className = 'modal-verdict ' + (pass ? 'pass' : 'fail');
+  
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+// ── RESTART MODAL LOGIC ──
+function showRestartModal() {
+  if (currentQuestions.length === 0) return;
+  document.getElementById('restart-modal').classList.add('show');
+}
+
+function closeRestartModal() {
+  document.getElementById('restart-modal').classList.remove('show');
+}
+
+function confirmRestart(shuffle) {
+  closeRestartModal();
+  initFreshState(shuffle);
+  renderUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// INITIAL START
+switchExam('finals');
+
+</script>
+</body>
+</html>
